@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/x-icon" href="../assets/icon.ico">
+        <title>HỌC TẬP TIN HỌC</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../styles.css" rel="stylesheet">
+        <link href="../codemirror-5.65.21/lib/codemirror.css" rel="stylesheet">
+        <link href="../codemirror-5.65.21/theme/darcula.css" rel="stylesheet">
+        <link href="../codemirror-5.65.21/theme/base16-light.css" rel="stylesheet">
+        <script src="../codemirror-5.65.21/lib/codemirror.js"></script>
+        <script src="../codemirror-5.65.21/mode/sql/sql.js"></script>
+        <script src="../codemirror-5.65.21/addon/edit/closebrackets.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    </head>
+    <style>
+        .table-wrapper {
+            max-height: 400px;
+            overflow: auto;
+            margin-top: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+        .table { margin-bottom: 0; min-width: 100%; }
+        .CodeMirror { font-size: 16px; border-radius: 8px; }
+        /* CSS cho giao diện Schema Designer */
+        #schema-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ccc;
+            overflow: hidden;
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .table-node {
+            position: absolute;
+            width: 200px;
+            background: white;
+            border: 1px solid #333;
+            border-radius: 4px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+            cursor: move;
+            touch-action: none;
+        }
+
+        .table-header {
+            background: #212529;
+            color: white;
+            padding: 5px 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .column-item {
+            padding: 3px 10px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pk-icon { color: #ffc107; margin-right: 5px; }
+        .fk-icon { color: #17a2b8; margin-right: 5px; }
+    </style>
+    <body>
+        <nav class="navbar navbar-dark bg-dark fixed-top" data-bs-theme="dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="../index.html">
+                    <img src="../assets/icon.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                    <b>HỌC TẬP TIN HỌC</b>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                    
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">CƠ SỞ DỮ LIỆU</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    Định nghĩa dữ liệu
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Tạo bảng (CREATE)</a></li>
+                                    <li><a class="dropdown-item" href="#">Cập nhật bảng (ALTER)</a></li>
+                                    <li><a class="dropdown-item" href="#">Xóa bảng (DROP)</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    Thao tác dữ liệu
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Thêm dữ liệu (INSERT)</a></li>
+                                    <li><a class="dropdown-item" href="#">Cập nhật dữ liệu (UPDATE)</a></li>
+                                    <li><a class="dropdown-item" href="#">Xóa dữ liệu (DELETE)</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    Truy vấn dữ liệu
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">SELECT, FROM</a></li>
+                                    <li><a class="dropdown-item" href="#">WHERE</a></li>
+                                    <li><a class="dropdown-item" href="#">JOIN</a></li>
+                                    <li><a class="dropdown-item" href="#">GROUP BY</a></li>
+                                    <li><a class="dropdown-item" href="#">ORDER BY</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    Thủ tục, hàm & trigger
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Thủ tục (Procedure)</a></li>
+                                    <li><a class="dropdown-item" href="#">Hàm (Function)</a></li>
+                                    <li><a class="dropdown-item" href="#">Trigger</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    Bài luyện tập
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Bài 1</a></li>
+                                    <li><a class="dropdown-item" href="#">Bài 2</a></li>
+                                    <li><a class="dropdown-item" href="#">Bài 3</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid" style="margin-top: 80px;">
+            <div class="row g-4">
+                <div class="col-12 col-md-6 border-end">
+                    <div class="d-flex justify-content-between">
+                        <div class="col-12 w-50">
+                            <select id="setting-editor" class="form-select form-select-lg mb-3">
+                                <option value="dark" selected>🌙 Dark</option>
+                                <option value="light">☀️ Light</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button id="button-copyCode" type="button" class="btn btn-lg btn-success"><i class="fas fa-copy"></i></button>
+                            <button id="button-runCode" type="button" class="btn btn-lg btn-success"><i class="fas fa-play"></i></button>
+                        </div>
+                    </div>
+                    <textarea id="editor">-- Nhập SQL tại đây
+CREATE TABLE SINHVIEN (MaSV INT, HoTen TEXT, Diem FLOAT);
+INSERT INTO SINHVIEN VALUES (1, 'Nguyen Van A', 8.5);
+INSERT INTO SINHVIEN VALUES (2, 'Tran Thi B', 9.0);
+SELECT * FROM SINHVIEN;</textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="d-flex">
+                        <div class="col-12 w-50">
+                            <select id="view-result" class="form-select form-select-lg mb-3">
+                                <option value="1" selected>Xem kết quả truy vấn</option>
+                                <option value="2">Xem cấu trúc dữ liệu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="result-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Biến lưu trữ các đường kẻ để xóa/vẽ lại khi di chuyển
+            let lines = [];
+
+            // 1. Khởi tạo CodeMirror
+            var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+                mode: "text/x-sql",
+                theme: "darcula",
+                lineNumbers: true,
+                autoCloseBrackets: true
+            });
+            editor.setSize("100%", window.innerHeight - 150);
+
+            // 2. KHỞI TẠO SQL.JS
+            let db;
+            let SQL_LIB; // Biến lưu trữ thư viện để reset db sau này
+
+            const config = {
+                locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${filename}`
+            };
+
+            initSqlJs(config).then(function(SQL) {
+                SQL_LIB = SQL; // Lưu thư viện vào biến global
+                db = new SQL_LIB.Database(); // Tạo db lần đầu
+                console.log("SQL.js đã sẵn sàng!");
+            }).catch(err => console.error("Lỗi khởi tạo SQL.js:", err));
+
+            // 3. XỬ LÝ SỰ KIỆN RUN CODE
+            var runBtn = document.getElementById("button-runCode");
+            var resultDisplay = document.getElementById("result-display");
+        
+
+            runBtn.addEventListener("click", function() {
+                if (!SQL_LIB) {
+                    alert("Hệ thống đang tải, vui lòng đợi...");
+                    return;
+                }
+
+                // --- CỐT LÕI: RESET DATABASE MỖI LẦN RUN ---
+                db = new SQL_LIB.Database(); 
+                // ------------------------------------------
+
+                const fullCode = editor.getValue().trim();
+
+                if (document.getElementById("view-result").value == "1") {
+                    resultDisplay.innerHTML = "";
+                    if (lines.length > 0) {
+                        lines.forEach(line => line.remove());
+                        lines = [];
+                    }
+                    try {
+                        let results = db.exec(fullCode);
+                        if (results.length > 0) {
+                            results.forEach(res => {
+                                resultDisplay.insertAdjacentHTML('beforeend', createAlert("info", "TRUY VẤN THÀNH CÔNG"));
+                                resultDisplay.insertAdjacentHTML('beforeend', createRealTable(res));
+                            });
+                        } else {
+                            resultDisplay.insertAdjacentHTML('beforeend', createAlert("success", "THỰC THI HOÀN TẤT (Dữ liệu đã được cập nhật)"));
+                        }
+                    } catch (err) {
+                        resultDisplay.insertAdjacentHTML('beforeend', createAlert("danger", `LỖI SQL: ${err.message}`));
+                    }
+                } else {
+                    try {
+                        db.exec(fullCode);
+                    } catch (e) {
+                        resultDisplay.innerHTML = createAlert("danger", "Lỗi SQL: " + e.message);
+                        return;
+                    }
+                    renderSchemaDesigner();
+                }
+            });
+
+            function renderSchemaDesigner() {
+                resultDisplay.innerHTML = '<div id="schema-container"></div>';
+                const container = document.getElementById("schema-container");
+                lines.forEach(line => line.remove());
+                lines = [];
+
+                // 1. Lấy danh sách tất cả các bảng trong DB
+                const tablesRes = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                if (tablesRes.length === 0) {
+                    container.innerHTML = createAlert("warning", "Không tìm thấy bảng nào.");
+                    return;
+                }
+
+                const tables = tablesRes[0].values;
+                let offsetX = 20;
+                let offsetY = 20;
+
+                tables.forEach((tRow, index) => {
+                    const tableName = tRow[0];
+                    
+                    // 2. Lấy thông tin cột của từng bảng (CID, name, type, notnull, pk, etc.)
+                    const columns = db.exec(`PRAGMA table_info('${tableName}')`)[0].values;
+                    // 3. Lấy thông tin khóa ngoại
+                    const foreignKeys = db.exec(`PRAGMA foreign_key_list('${tableName}')`)[0]?.values || [];
+
+                    // Tạo HTML cho bảng
+                    const tableDiv = document.createElement('div');
+                    tableDiv.className = 'table-node';
+                    tableDiv.id = `node-${tableName}`;
+                    tableDiv.style.left = `${offsetX}px`;
+                    tableDiv.style.top = `${offsetY}px`;
+
+                    let colsHtml = columns.map(col => {
+                        const isPk = col[5] === 1;
+                        const isFk = foreignKeys.some(fk => fk[3] === col[1]);
+                        return `
+                            <div class="column-item" id="col-${tableName}-${col[1]}">
+                                <span>
+                                    ${isPk ? '<i class="fas fa-key pk-icon"></i>' : ''}
+                                    ${isFk ? '<i class="fas fa-link fk-icon"></i>' : ''}
+                                    ${col[1]}
+                                </span>
+                                <small class="text-muted">${col[2]}</small>
+                            </div>`;
+                    }).join('');
+
+                    tableDiv.innerHTML = `
+                        <div class="table-header">${tableName}</div>
+                        <div class="table-body">${colsHtml}</div>
+                    `;
+
+                    container.appendChild(tableDiv);
+
+                    // Sắp xếp vị trí cơ bản cho các bảng
+                    offsetX += 220;
+                    if (offsetX > container.offsetWidth - 200) {
+                        offsetX = 20;
+                        offsetY += 200;
+                    }
+
+                    // 4. Kích hoạt tính năng kéo thả (Interact.js)
+                    interact(`#node-${tableName}`).draggable({
+                        inertia: true,
+                        listeners: {
+                            move(event) {
+                                const target = event.target;
+                                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                                target.style.transform = `translate(${x}px, ${y}px)`;
+                                target.setAttribute('data-x', x);
+                                target.setAttribute('data-y', y);
+
+                                // Cập nhật lại vị trí các đường nối khi kéo
+                                lines.forEach(line => line.position());
+                            }
+                        }
+                    });
+                });
+
+                // 5. Vẽ các đường nối khóa ngoại (LeaderLine)
+                tables.forEach(tRow => {
+                    const tableName = tRow[0];
+                    const fks = db.exec(`PRAGMA foreign_key_list('${tableName}')`)[0]?.values || [];
+                    
+                    fks.forEach(fk => {
+                        const fromEl = document.getElementById(`col-${tableName}-${fk[3]}`);
+                        const toEl = document.getElementById(`col-${fk[2]}-${fk[4]}`);
+
+                        if (fromEl && toEl) {
+                            const line = new LeaderLine(fromEl, toEl, {
+                                color: '#17a2b8',
+                                size: 2,
+                                path: 'grid',
+                                startSocket: 'right',
+                                endSocket: 'left'
+                            });
+                            lines.push(line);
+                        }
+                    });
+                });
+            }
+
+            // 4. HÀM TẠO BẢNG KẾT QUẢ
+            function createRealTable(result) {
+                let columns = result.columns;
+                let values = result.values;
+
+                let thead = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
+                let tbody = values.map(row => {
+                    return `<tr>${row.map(cell => `<td>${cell !== null ? cell : ''}</td>`).join('')}</tr>`;
+                }).join('');
+
+                return `
+                    <div class="table-wrapper shadow-sm mb-4">
+                        <table class="table table-bordered table-striped table-hover bg-white">
+                            <thead class="table-dark">${thead}</thead>
+                            <tbody>${tbody}</tbody>
+                        </table>
+                    </div>`;
+            }
+
+            // 5. HELPER FUNCTIONS
+            function createAlert(type, message) {
+                return `<div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-2" role="alert">
+                            <i class="fas ${getIcon(type)} me-2"></i> ${message}
+                        </div>`;
+            }
+
+            function getIcon(type) {
+                const icons = {
+                    'success': 'fa-check-circle',
+                    'danger': 'fa-database',
+                    'info': 'fa-table',
+                    'warning': 'fa-edit'
+                };
+                return icons[type] || 'fa-exclamation-triangle';
+            }
+
+            // 6. GIAO DIỆN KHÁC
+            document.getElementById("setting-editor").addEventListener("change", function() {
+                editor.setOption("theme", this.value === "dark" ? "darcula" : "base16-light");
+            });
+
+            document.getElementById("button-copyCode").addEventListener("click", function(){
+                navigator.clipboard.writeText(editor.getValue());
+                alert("Đã copy code!");
+            });
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
