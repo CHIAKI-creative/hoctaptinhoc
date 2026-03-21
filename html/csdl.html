@@ -240,8 +240,13 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="" onclick="returnSQLSample()"; return false;">
+                                    <a class="dropdown-item" href="" onclick="returnSQLSample(); return false;">
                                         <i class="fas fa-pencil me-2 text-secondary"></i> Sql mẫu
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="" onclick="deleteCode(); return false;">
+                                        <i class="fas fa-trash me-2 text-info"></i> Xóa code
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -452,9 +457,14 @@ ORDER BY sv.Diem DESC;</textarea>
                         offsetY += 200;
                     }
 
-                    // 4. Kích hoạt tính năng kéo thả (Interact.js)
                     interact(`#node-${tableName}`).draggable({
                         inertia: true,
+                        modifiers: [
+                            interact.modifiers.restrictRect({
+                                restriction: '#schema-container',
+                                endOnly: false
+                            })
+                        ],
                         listeners: {
                             move(event) {
                                 const target = event.target;
@@ -601,8 +611,15 @@ ORDER BY sv.Diem DESC;</textarea>
                 }
             });
 
-        function returnSQLSample() {
-            const sampleCode = `-- 1. Xóa bảng cũ nếu tồn tại
+            function deleteCode() {
+                sampleCode = ``
+                editor.setValue(sampleCode);
+                localStorage.setItem("sql_code_temp", sampleCode);
+                alert("Đã xóa toàn bộ code đã nhập!")
+            }
+
+            function returnSQLSample() {
+                const sampleCode = `-- 1. Xóa bảng cũ nếu tồn tại
 DROP TABLE IF EXISTS SINHVIEN;
 DROP TABLE IF EXISTS LOP;
 
