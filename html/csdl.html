@@ -239,6 +239,11 @@
                                         <i class="fas fa-search me-2 text-danger"></i> Phóng to
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item" href="" onclick="returnSQLSample()"; return false;">
+                                        <i class="fas fa-pencil me-2 text-secondary"></i> Sql mẫu
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item" href="" onclick="selectAllCode(); return false;">
@@ -249,11 +254,51 @@
                             <button id="button-runCode" type="button" class="btn btn-lg btn-success"><i class="fas fa-play"></i></button>
                         </div>
                     </div>
-                    <textarea id="editor">-- Nhập SQL tại đây
-CREATE TABLE SINHVIEN (MaSV INT, HoTen TEXT, Diem FLOAT);
-INSERT INTO SINHVIEN VALUES (1, 'Nguyen Van A', 8.5);
-INSERT INTO SINHVIEN VALUES (2, 'Tran Thi B', 9.0);
-SELECT * FROM SINHVIEN;</textarea>
+                    <textarea id="editor">-- 1. Xóa bảng cũ nếu tồn tại (Lưu ý: Xóa bảng SINHVIEN trước vì nó tham chiếu đến bảng LOP)
+DROP TABLE IF EXISTS SINHVIEN;
+DROP TABLE IF EXISTS LOP;
+
+-- 2. Tạo bảng LOP (Bảng Cha)
+-- Bảng này phải được tạo trước để bảng SINHVIEN có chỗ mà tham chiếu tới
+CREATE TABLE LOP (
+    MaLop INT PRIMARY KEY,         -- Khóa chính
+    TenLop TEXT NOT NULL           -- Tên lớp không được để trống
+);
+
+-- 3. Tạo bảng SINHVIEN (Bảng Con)
+CREATE TABLE SINHVIEN (
+    MaSV INT PRIMARY KEY,          -- Khóa chính
+    HoTen TEXT NOT NULL,
+    Diem FLOAT CHECK (Diem >= 0 AND Diem <= 10), -- Ràng buộc điểm từ 0-10
+    MaLop INT,                     -- Cột sẽ làm khóa ngoại
+    
+    -- Thiết lập khóa ngoại chính thức tại đây
+    CONSTRAINT fk_sinhvien_lop 
+    FOREIGN KEY (MaLop) 
+    REFERENCES LOP(MaLop)
+    ON DELETE SET NULL             -- Nếu xóa lớp, mã lớp ở bảng sinh viên sẽ thành NULL
+    ON UPDATE CASCADE              -- Nếu đổi mã lớp ở bảng LOP, bảng SINHVIEN tự cập nhật theo
+);
+
+-- 4. Chèn dữ liệu vào bảng LOP
+INSERT INTO LOP (MaLop, TenLop) VALUES (101, 'Công nghệ thông tin');
+INSERT INTO LOP (MaLop, TenLop) VALUES (102, 'Kinh tế đầu tư');
+
+-- 5. Chèn dữ liệu vào bảng SINHVIEN
+-- (Lưu ý: Giá trị MaLop phải tồn tại trong bảng LOP)
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (1, 'Nguyen Van A', 8.5, 101);
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (2, 'Tran Thi B', 9.0, 101);
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (3, 'Le Van C', 7.5, 102);
+
+-- 6. Truy vấn dùng INNER JOIN để xem kết quả phối hợp
+SELECT 
+    sv.MaSV, 
+    sv.HoTen, 
+    sv.Diem, 
+    l.TenLop
+FROM SINHVIEN sv
+INNER JOIN LOP l ON sv.MaLop = l.MaLop
+ORDER BY sv.Diem DESC;</textarea>
                 </div>
                 <div id="result-container" class="col-12 col-lg-6">
                     <div class="d-flex">
@@ -533,6 +578,69 @@ SELECT * FROM SINHVIEN;</textarea>
                     resultCol.classList.replace('col-lg-12', 'col-lg-6');
                     editorCol.classList.add('border-end');
                 }
+            }
+
+            let timeout = null;
+            editor.on("change", () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    const currentCode = editor.getValue();
+                    localStorage.setItem("sql_code_temp", currentCode);
+                }, 1000);
+            });
+
+            window.addEventListener("DOMContentLoaded", () => {
+                const savedCode = localStorage.getItem("sql_code_temp");
+                if (savedCode) {
+                    editor.setValue(savedCode);
+                }
+            });
+
+        function returnSQLSample() {
+            const sampleCode = `-- 1. Xóa bảng cũ nếu tồn tại
+DROP TABLE IF EXISTS SINHVIEN;
+DROP TABLE IF EXISTS LOP;
+
+-- 2. Tạo bảng LOP (Bảng Cha)
+CREATE TABLE LOP (
+    MaLop INT PRIMARY KEY,         -- Khóa chính
+    TenLop TEXT NOT NULL           -- Tên lớp không được để trống
+);
+
+-- 3. Tạo bảng SINHVIEN (Bảng Con)
+CREATE TABLE SINHVIEN (
+    MaSV INT PRIMARY KEY,          -- Khóa chính
+    HoTen TEXT NOT NULL,
+    Diem FLOAT CHECK (Diem >= 0 AND Diem <= 10), 
+    MaLop INT,                     
+    
+    CONSTRAINT fk_sinhvien_lop 
+    FOREIGN KEY (MaLop) 
+    REFERENCES LOP(MaLop)
+    ON DELETE SET NULL             
+    ON UPDATE CASCADE              
+);
+
+-- 4. Chèn dữ liệu vào bảng LOP
+INSERT INTO LOP (MaLop, TenLop) VALUES (101, 'Công nghệ thông tin');
+INSERT INTO LOP (MaLop, TenLop) VALUES (102, 'Kinh tế đầu tư');
+
+-- 5. Chèn dữ liệu vào bảng SINHVIEN
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (1, 'Nguyen Van A', 8.5, 101);
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (2, 'Tran Thi B', 9.0, 101);
+INSERT INTO SINHVIEN (MaSV, HoTen, Diem, MaLop) VALUES (3, 'Le Van C', 7.5, 102);
+
+-- 6. Truy vấn kết quả
+SELECT 
+    sv.MaSV, 
+    sv.HoTen, 
+    sv.Diem, 
+    l.TenLop
+FROM SINHVIEN sv
+INNER JOIN LOP l ON sv.MaLop = l.MaLop
+ORDER BY sv.Diem DESC;`;
+                editor.setValue(sampleCode);
+                localStorage.setItem("sql_code_temp", sampleCode);
             }
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
