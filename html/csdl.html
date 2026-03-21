@@ -235,6 +235,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a class="dropdown-item" href="" onclick="triggerImport(); return false;">
+                                        <i class="fas fa-file-import me-2 text-warning"></i> Nhập file (.sql, .txt)
+                                    </a>
+                                </li>
+                                <input type="file" id="file-input" style="display: none;" accept=".sql,.txt">
+                                <li>
                                     <a class="dropdown-item" href="" onclick="toggleExpand(); return false;">
                                         <i class="fas fa-search me-2 text-danger"></i> Phóng to
                                     </a>
@@ -617,6 +623,48 @@ ORDER BY sv.Diem DESC;</textarea>
                 localStorage.setItem("sql_code_temp", sampleCode);
                 alert("Đã xóa toàn bộ code đã nhập!")
             }
+
+            // Hàm kích hoạt chọn file khi click vào menu
+            function triggerImport() {
+                document.getElementById('file-input').click();
+            }
+
+            // Lắng nghe sự kiện thay đổi file của input
+            document.getElementById('file-input').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Kiểm tra định dạng file (tùy chọn)
+                const fileName = file.name;
+                const extension = fileName.split('.').pop().toLowerCase();
+                if (extension !== 'sql' && extension !== 'txt') {
+                    alert("Vui lòng chọn file định dạng .sql hoặc .txt");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    
+                    // Đưa nội dung vào CodeMirror editor
+                    editor.setValue(content);
+                    
+                    // Lưu vào localStorage để không bị mất khi reload
+                    localStorage.setItem("sql_code_temp", content);
+                    
+                    // Thông báo cho người dùng
+                    alert("Đã nhập dữ liệu từ file: " + fileName);
+                    
+                    // Reset input để có thể chọn lại cùng 1 file nếu cần
+                    event.target.value = '';
+                };
+
+                reader.onerror = function() {
+                    alert("Lỗi khi đọc file!");
+                };
+
+                reader.readAsText(file);
+            });
 
             function returnSQLSample() {
                 const sampleCode = `-- 1. Xóa bảng cũ nếu tồn tại
