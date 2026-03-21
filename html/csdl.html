@@ -72,6 +72,58 @@
 
         .pk-icon { color: #ffc107; margin-right: 5px; }
         .fk-icon { color: #17a2b8; margin-right: 5px; }
+
+        @media (max-width: 768px) {
+
+    /* Thu nhỏ chữ toàn trang */
+    body {
+        font-size: 14px;
+    }
+
+    /* Editor nhỏ lại */
+    .CodeMirror {
+        font-size: 13px !important;
+    }
+
+    /* Bảng kết quả */
+    .table {
+        font-size: 13px;
+    }
+
+    /* Schema Designer */
+    #schema-container {
+        height: 400px;
+    }
+
+    .table-node {
+        width: 150px; /* nhỏ lại */
+        font-size: 12px;
+    }
+
+    .table-header {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+
+    .column-item {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+
+    .pk-icon, .fk-icon {
+        font-size: 10px;
+    }
+
+    .btn-lg {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    .form-select-lg {
+        font-size: 14px;
+        padding: 6px;
+    }
+}
     </style>
     <body>
         <nav class="navbar navbar-dark bg-dark fixed-top" data-bs-theme="dark">
