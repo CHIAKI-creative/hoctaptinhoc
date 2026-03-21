@@ -759,6 +759,26 @@ ORDER BY sv.Diem DESC;`;
                 editor.setValue(sampleCode);
                 localStorage.setItem("sql_code_temp", sampleCode);
             }
+
+            // 1. Lắng nghe sự kiện thay đổi của Dropdown xem kết quả
+            document.getElementById("view-result").addEventListener("change", function() {
+                localStorage.setItem("selected_view_mode", this.value);
+            });
+
+            // 2. Khôi phục trạng thái khi trang vừa load xong
+            window.addEventListener("DOMContentLoaded", () => {
+                // Đoạn code cũ của bạn cho Editor
+                const savedCode = localStorage.getItem("sql_code_temp");
+                if (savedCode) {
+                    editor.setValue(savedCode);
+                }
+
+                // --- BỔ SUNG: Khôi phục dạng xem kết quả ---
+                const savedViewMode = localStorage.getItem("selected_view_mode");
+                if (savedViewMode) {
+                    document.getElementById("view-result").value = savedViewMode;
+                }
+            });
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     </body>
