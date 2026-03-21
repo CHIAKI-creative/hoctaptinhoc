@@ -566,6 +566,11 @@ ORDER BY sv.Diem DESC;</textarea>
             }
 
             function toggleExpand() {
+                resultDisplay.innerHTML = "";
+                if (lines.length > 0) {
+                    lines.forEach(line => line.remove());
+                    lines = [];
+                }
                 const editorCol = document.getElementById('editor-container');
                 const resultCol = document.getElementById('result-container');
 
