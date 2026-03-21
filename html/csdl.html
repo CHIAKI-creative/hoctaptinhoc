@@ -369,7 +369,7 @@ ORDER BY sv.Diem DESC;</textarea>
             var resultDisplay = document.getElementById("result-display");
         
 
-            runBtn.addEventListener("click", function() {
+            function runCode() {
                 if (!SQL_LIB) {
                     alert("Hệ thống đang tải, vui lòng đợi...");
                     return;
@@ -409,6 +409,10 @@ ORDER BY sv.Diem DESC;</textarea>
                     }
                     renderSchemaDesigner();
                 }
+            }
+
+            runBtn.addEventListener("click", function() {
+                runCode()
             });
 
             function clearLines() {
@@ -654,6 +658,7 @@ ORDER BY sv.Diem DESC;</textarea>
                 timeout = setTimeout(() => {
                     const currentCode = editor.getValue();
                     localStorage.setItem("sql_code_temp", currentCode);
+                    runCode();
                 }, 1000);
             });
 
