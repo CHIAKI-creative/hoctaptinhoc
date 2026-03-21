@@ -383,10 +383,7 @@ ORDER BY sv.Diem DESC;</textarea>
 
                 if (document.getElementById("view-result").value == "1") {
                     resultDisplay.innerHTML = "";
-                    if (lines.length > 0) {
-                        lines.forEach(line => line.remove());
-                        lines = [];
-                    }
+                    clearLines()
                     try {
                         let results = db.exec(fullCode);
                         if (results.length > 0) {
@@ -398,12 +395,14 @@ ORDER BY sv.Diem DESC;</textarea>
                             resultDisplay.insertAdjacentHTML('beforeend', createAlert("success", "THỰC THI HOÀN TẤT (Dữ liệu đã được cập nhật)"));
                         }
                     } catch (err) {
+                        clearLines()
                         resultDisplay.insertAdjacentHTML('beforeend', createAlert("danger", `LỖI SQL: ${err.message}`));
                     }
                 } else {
                     try {
                         db.exec(fullCode);
                     } catch (e) {
+                        clearLines()
                         resultDisplay.innerHTML = createAlert("danger", "Lỗi SQL: " + e.message);
                         return;
                     }
