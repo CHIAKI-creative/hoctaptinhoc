@@ -32,13 +32,21 @@
         /* CSS cho giao diện Schema Designer */
         #schema-container {
             position: relative;
-            width: 100%;
-            height: 600px;
+            width: 100% !important; /* Luôn chiếm hết chiều ngang của layout */
+            min-height: 400px;
             background-color: #f8f9fa;
             border: 1px dashed #ccc;
             overflow: hidden;
             background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
             background-size: 20px 20px;
+            touch-action: none; 
+            box-sizing: border-box;
+            /* Hiển thị con trỏ kéo giãn khi di chuột vào cạnh dưới */
+            cursor: s-resize; 
+        }
+
+        .resizing {
+            border: 2px solid #0d6efd !important;
         }
 
         .table-node {
@@ -403,11 +411,26 @@ ORDER BY sv.Diem DESC;</textarea>
                 }
             });
 
+            function clearLines() {
+                if (lines && lines.length > 0) {
+                    lines.forEach(line => {
+                        try {
+                            line.remove(); // Xóa thực thể line khỏi DOM
+                        } catch (e) {
+                            console.error("Lỗi khi xóa line:", e);
+                        }
+                    });
+                    lines = []; // Reset mảng
+                }
+                // Xóa triệt để các thẻ SVG do LeaderLine tạo ra còn sót lại trong body
+                const oldLines = document.querySelectorAll('.leader-line');
+                oldLines.forEach(el => el.remove());
+            }
+
             function renderSchemaDesigner() {
+                clearLines();
                 resultDisplay.innerHTML = '<div id="schema-container"></div>';
                 const container = document.getElementById("schema-container");
-                lines.forEach(line => line.remove());
-                lines = [];
 
                 // 1. Lấy danh sách tất cả các bảng trong DB
                 const tablesRes = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
@@ -485,6 +508,30 @@ ORDER BY sv.Diem DESC;</textarea>
                                 lines.forEach(line => line.position());
                             }
                         }
+                    });
+
+                    interact('#schema-container')
+                    .resizable({
+                        // Chỉ cho phép kéo ở cạnh dưới (bottom)
+                        edges: { left: false, right: false, bottom: true, top: false },
+                        listeners: {
+                            move(event) {
+                                // Chỉ cập nhật chiều cao (height), chiều rộng (width) tự động theo layout
+                                event.target.style.height = event.rect.height + 'px';
+
+                                // Cập nhật lại vị trí các đường nối khi container thay đổi độ cao
+                                if (lines) {
+                                    lines.forEach(line => line.position());
+                                }
+                            }
+                        },
+                        modifiers: [
+                            // Giới hạn độ cao tối thiểu là 400px, tối đa tùy ý
+                            interact.modifiers.restrictSize({
+                                min: { height: 400 }
+                            })
+                        ],
+                        inertia: true
                     });
                 });
 
@@ -582,19 +629,19 @@ ORDER BY sv.Diem DESC;</textarea>
             }
 
             function toggleExpand() {
+                clearLines();
                 resultDisplay.innerHTML = "";
-                if (lines.length > 0) {
-                    lines.forEach(line => line.remove());
-                    lines = [];
-                }
                 const editorCol = document.getElementById('editor-container');
                 const resultCol = document.getElementById('result-container');
+                const isExpanded = editorCol.classList.contains('col-lg-6');
 
-                if (editorCol.classList.contains('col-lg-6')) {
+                if (isExpanded) {
+                    // Chế độ phóng to 100%
                     editorCol.classList.replace('col-lg-6', 'col-lg-12');
                     resultCol.classList.replace('col-lg-6', 'col-lg-12');
-                    editorCol.classList.remove('border-end'); 
+                    editorCol.classList.remove('border-end');
                 } else {
+                    // Quay lại chế độ chia đôi 50/50
                     editorCol.classList.replace('col-lg-12', 'col-lg-6');
                     resultCol.classList.replace('col-lg-12', 'col-lg-6');
                     editorCol.classList.add('border-end');
