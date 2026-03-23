@@ -468,13 +468,14 @@ ORDER BY sv.Diem DESC;</textarea>
                     tableDiv.style.top = `${offsetY}px`;
 
                     let colsHtml = columns.map(col => {
-                        const isPk = col[5] === 1;
+                        const isPk = col[5] > 0; 
                         const isFk = foreignKeys.some(fk => fk[3] === col[1]);
+                        
                         return `
                             <div class="column-item" id="col-${tableName}-${col[1]}">
                                 <span>
-                                    ${isPk ? '<i class="fas fa-key pk-icon"></i>' : ''}
-                                    ${isFk ? '<i class="fas fa-link fk-icon"></i>' : ''}
+                                    ${isPk ? '<i class="fas fa-key pk-icon" title="Primary Key"></i>' : ''}
+                                    ${isFk ? '<i class="fas fa-link fk-icon" title="Foreign Key"></i>' : ''}
                                     ${col[1]}
                                 </span>
                                 <small class="text-muted">${col[2]}</small>
