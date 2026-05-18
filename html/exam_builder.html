@@ -510,6 +510,130 @@
             saveMatrixState(); // Lưu vết sau khi đổi thứ tự câu
         };
 
+        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI VỚI PROMPT PHỤ (GOM PROMPT CŨ + HIỆN TẠI + PROMPT MỚI)
+        window.reloadQuestion = async function(button, type) {
+            const extraPrompt = prompt("Nhập yêu cầu phụ để sửa câu hỏi này (hoặc để trống nếu chỉ muốn AI đổi ngẫu nhiên thành câu khác):");
+            if (extraPrompt === null) return; // Người dùng ấn Hủy
+            
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                alert("Vui lòng nhập Gemini API KEY!");
+                apiKeyInput.focus();
+                return;
+            }
+
+            const item = button.closest('.question-item');
+            const originalHtml = button.innerHTML;
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            button.disabled = true;
+
+            // 1. Lấy nội dung gốc (tri thức + prompt bổ sung tổng thể)
+            let knowledgeBase = "";
+            document.querySelectorAll('.extracted-text-data').forEach(tx => {
+                knowledgeBase += tx.value + "\n";
+            });
+
+            // 2. Lấy nội dung câu hỏi hiện tại đang hiển thị trên form để làm context
+            let currentContentObj = {};
+            if (type === 'mcq4') {
+                currentContentObj = {
+                    question: item.querySelector('.form-q').value,
+                    code: item.querySelector('.form-code').value,
+                    score: item.querySelector('.form-score').value,
+                    a: item.querySelector('.form-a').value,
+                    b: item.querySelector('.form-b').value,
+                    c: item.querySelector('.form-c').value,
+                    d: item.querySelector('.form-d').value,
+                    ans: item.querySelector('.form-ans').value
+                };
+            } else if (type === 'mcqtf') {
+                currentContentObj = {
+                    question: item.querySelector('.form-q').value,
+                    code: item.querySelector('.form-code').value,
+                    score: item.querySelector('.form-score').value,
+                    opt1: item.querySelector('.form-a').value,
+                    opt2: item.querySelector('.form-b').value,
+                    ans: item.querySelector('.form-ans').value
+                };
+            } else if (type === 'essay') {
+                currentContentObj = {
+                    question: item.querySelector('.form-q').value,
+                    code: item.querySelector('.form-code').value,
+                    score: item.querySelector('.form-score').value,
+                    guide: item.querySelector('.form-ans').value
+                };
+            }
+
+            try {
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                let promptSystem = "";
+                
+                // Gắn prompt cũ (định hướng chung)
+                let promptUser = `Dựa trên văn bản tri thức nền tảng:\n${knowledgeBase || "Kiến thức tin học và lập trình cơ bản"}\n\nĐịnh hướng chung của đề thi: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}\n\n`;
+
+                // Gắn nội dung câu hỏi hiện tại
+                promptUser += `Đây là NỘI DUNG CÂU HỎI HIỆN TẠI (định dạng JSON):\n${JSON.stringify(currentContentObj, null, 2)}\n\n`;
+
+                // Gắn prompt mới (yêu cầu phụ)
+                if (extraPrompt.trim() !== "") {
+                    promptUser += `YÊU CẦU ĐẶC BIỆT TỪ NGƯỜI DÙNG CHO CÂU HỎI NÀY:\n"${extraPrompt}"\n-> Hãy dựa vào yêu cầu này và nội dung hiện tại để chỉnh sửa, sinh ra câu hỏi mới cho phù hợp nhất.\n\n`;
+                } else {
+                    promptUser += `YÊU CẦU: Hãy sinh ra một câu hỏi MỚI HOÀN TOÀN khác với nội dung câu hỏi hiện tại, nhưng vẫn phải giữ đúng định dạng, mức độ và cấu trúc.\n\n`;
+                }
+
+                if (type === 'mcq4') {
+                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Câu hỏi", "code": "Code hoặc rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"}';
+                } else if (type === 'mcqtf') {
+                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Phát biểu", "code": "Code hoặc rỗng", "score": 0.5, "opt1": "Đúng", "opt2": "Sai", "ans": "Đúng"}';
+                } else if (type === 'essay') {
+                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Yêu cầu tự luận", "code": "Code hoặc rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"}';
+                }
+
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: promptUser,
+                    config: {
+                        systemInstruction: promptSystem,
+                        responseMimeType: "application/json"
+                    }
+                });
+
+                const newData = JSON.parse(response.text);
+
+                // Cập nhật lại HTML trên giao diện
+                if (type === 'mcq4') {
+                    item.querySelector('.form-q').value = newData.question || "";
+                    item.querySelector('.form-code').value = newData.code || "";
+                    item.querySelector('.form-score').value = newData.score || 0.25;
+                    item.querySelector('.form-a').value = newData.a || "";
+                    item.querySelector('.form-b').value = newData.b || "";
+                    item.querySelector('.form-c').value = newData.c || "";
+                    item.querySelector('.form-d').value = newData.d || "";
+                    item.querySelector('.form-ans').value = newData.ans || "";
+                } else if (type === 'mcqtf') {
+                    item.querySelector('.form-q').value = newData.question || "";
+                    item.querySelector('.form-code').value = newData.code || "";
+                    item.querySelector('.form-score').value = newData.score || 0.5;
+                    item.querySelector('.form-a').value = newData.opt1 || "Đúng";
+                    item.querySelector('.form-b').value = newData.opt2 || "Sai";
+                    item.querySelector('.form-ans').value = newData.ans || "";
+                } else if (type === 'essay') {
+                    item.querySelector('.form-q').value = newData.question || "";
+                    item.querySelector('.form-code').value = newData.code || "";
+                    item.querySelector('.form-score').value = newData.score || 2.0;
+                    item.querySelector('.form-ans').value = newData.guide || "";
+                }
+
+                saveMatrixState();
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi khi tải lại nội dung câu hỏi: " + err.message);
+            } finally {
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+            }
+        };
+
         function updateQuestionNumbers() {
             let c4 = 0, ctf = 0, ce = 0;
             containerMcq4.querySelectorAll('.q-num').forEach(span => span.innerText = ++c4);
@@ -597,22 +721,23 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-success">Câu <span class="q-num">${i+1}</span> (Trắc nghiệm 4 lựa chọn)</span>
                                 <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcq4')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
                             </div>
-                            <div class="mb-2"><input type="text" class="form-control form-q border-0 fw-semibold" value="${q.question}"></div>
+                            <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2">${q.question}</textarea></div>
                             <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="2">${q.code || ""}</textarea></div>
                             <div class="row g-2 mb-2">
                                 <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 0.25}" step="0.25"></div>
                             </div>
                             <div class="row g-2 small">
-                                <div class="col-6">A. <input type="text" class="form-control form-control-sm form-a border-secondary-subtle" value="${q.a}"></div>
-                                <div class="col-6">B. <input type="text" class="form-control form-control-sm form-b border-secondary-subtle" value="${q.b}"></div>
-                                <div class="col-6">C. <input type="text" class="form-control form-control-sm form-c border-secondary-subtle" value="${q.c}"></div>
-                                <div class="col-6">D. <input type="text" class="form-control form-control-sm form-d border-secondary-subtle" value="${q.d}"></div>
+                                <div class="col-6">A. <textarea class="form-control form-control-sm form-a border-secondary-subtle" rows="1">${q.a}</textarea></div>
+                                <div class="col-6">B. <textarea class="form-control form-control-sm form-b border-secondary-subtle" rows="1">${q.b}</textarea></div>
+                                <div class="col-6">C. <textarea class="form-control form-control-sm form-c border-secondary-subtle" rows="1">${q.c}</textarea></div>
+                                <div class="col-6">D. <textarea class="form-control form-control-sm form-d border-secondary-subtle" rows="1">${q.d}</textarea></div>
                             </div>
-                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <input type="text" class="form-control form-control-sm d-inline-block w-25 form-ans border-danger" value="${q.ans}"></div>
+                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <textarea class="form-control form-control-sm form-ans border-danger mt-1" rows="1">${q.ans}</textarea></div>
                         `;
                         containerMcq4.appendChild(div);
                     });
@@ -626,20 +751,21 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-secondary">Câu <span class="q-num">${i+1}</span> (Trắc nghiệm Đúng/Sai)</span>
                                 <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcqtf')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
                             </div>
-                            <div class="mb-2"><input type="text" class="form-control form-q border-0 fw-semibold" value="${q.question}"></div>
+                            <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2">${q.question}</textarea></div>
                             <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="1">${q.code || ""}</textarea></div>
                             <div class="row g-2 mb-2">
                                 <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 0.5}" step="0.25"></div>
                             </div>
                             <div class="row g-2 small">
-                                <div class="col-6">Lựa chọn 1: <input type="text" class="form-control form-control-sm form-a border-secondary-subtle" value="${q.opt1 || 'Đúng'}"></div>
-                                <div class="col-6">Lựa chọn 2: <input type="text" class="form-control form-control-sm form-b border-secondary-subtle" value="${q.opt2 || 'Sai'}"></div>
+                                <div class="col-6">Lựa chọn 1: <textarea class="form-control form-control-sm form-a border-secondary-subtle" rows="1">${q.opt1 || 'Đúng'}</textarea></div>
+                                <div class="col-6">Lựa chọn 2: <textarea class="form-control form-control-sm form-b border-secondary-subtle" rows="1">${q.opt2 || 'Sai'}</textarea></div>
                             </div>
-                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <input type="text" class="form-control form-control-sm d-inline-block w-25 form-ans border-danger" value="${q.ans}"></div>
+                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <textarea class="form-control form-control-sm form-ans border-danger mt-1" rows="1">${q.ans}</textarea></div>
                         `;
                         containerMcqTf.appendChild(div);
                     });
@@ -653,11 +779,12 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-dark">Câu <span class="q-num">${i+1}</span> (Tự luận lập trình)</span>
                                 <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'essay')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
                             </div>
-                            <div class="mb-2"><input type="text" class="form-control form-q border-0 fw-semibold" value="${q.question}"></div>
+                            <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2">${q.question}</textarea></div>
                             <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="3">${q.code || ""}</textarea></div>
                             <div class="row g-2 mb-2">
                                 <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 2.0}" step="0.5"></div>
@@ -678,10 +805,10 @@
             } catch (err) {
                 console.error(err);
                 alert("Lỗi phân tích cú pháp dữ liệu: " + err.message);
-            } {
+            } finally {
                 aiGenerateBtn.disabled = false;
-                aiGenerateBtn.className = "btn btn-success fw-bold shadow-sm";
-                aiGenerateBtn.innerHTML = `<i class="fas fa-wand-magic-sparkles me-1"></i>Sinh dữ liệu từ AI`;
+                aiGenerateBtn.className = "btn btn-success fw-bold shadow-sm px-4";
+                aiGenerateBtn.innerHTML = `<i class="fas fa-wand-magic-sparkles me-1"></i>Gọi Gemini API Studio`;
             }
         });
 
