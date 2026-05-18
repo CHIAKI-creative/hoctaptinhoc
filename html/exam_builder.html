@@ -877,6 +877,18 @@
             return text.replace(/\n/g, "<br>");
         }
 
+        // Thêm hàm định dạng riêng cho các đoạn Code
+        function formatCodeForWord(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")      // Mã hóa ký tự &
+                .replace(/</g, "&lt;")       // Mã hóa dấu < (tránh lỗi khi viết thư viện C++, thẻ HTML...)
+                .replace(/>/g, "&gt;")       // Mã hóa dấu >
+                .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;") // Thay 1 Tab bằng 4 khoảng trắng cứng
+                .replace(/ /g, "&nbsp;")     // Thay khoảng trắng thường bằng khoảng trắng cứng để Word không thu gọn
+                .replace(/\n/g, "<br>");     // Xuống dòng
+        }
+
         // XUẤT WORD
         function buildAndDownloadWord(includeAnswers) {
             const mcq4Items = containerMcq4.querySelectorAll('.question-item');
@@ -913,7 +925,7 @@
                 htmlContent += `<div class="section-title">PHẦN I. Câu trắc nghiệm khách quan (4 lựa chọn)</div>`;
                 mcq4Items.forEach((item, index) => {
                     const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatLineBreaks(codeVal);
+                    const codeFormatted = formatCodeForWord(codeVal);
 
                     htmlContent += `
                         <div class="question">
@@ -934,8 +946,7 @@
                 htmlContent += `<div class="section-title">PHẦN II. Câu trắc nghiệm Đúng / Sai</div>`;
                 mcqTfItems.forEach((item, index) => {
                     const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatLineBreaks(codeVal);
-
+                    const codeFormatted = formatCodeForWord(codeVal);
                     htmlContent += `
                         <div class="question">
                             <b>Câu ${index + 1}:</b> ${item.querySelector('.form-q').value} <span class="score">(${item.querySelector('.form-score').value} điểm)</span>
@@ -953,7 +964,7 @@
                 htmlContent += `<div class="section-title">PHẦN III. Câu hỏi tự luận định nghĩa / Lập trình</div>`;
                 essayItems.forEach((item, index) => {
                     const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatLineBreaks(codeVal);
+                    const codeFormatted = formatCodeForWord(codeVal);
                     const guideFormatted = formatLineBreaks(item.querySelector('.form-ans').value);
 
                     htmlContent += `
