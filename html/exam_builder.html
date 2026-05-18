@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <style>
-        .matrix-table input {
+        .matrix-table .matrix-input {
             text-align: center;
             font-weight: bold;
         }
@@ -33,6 +33,16 @@
             border: 1px solid #e9ecef;
             padding: 8px;
             border-radius: 4px;
+        }
+        
+        .topic-row .btn-del-row {
+            padding: 0.15rem 0.5rem;
+        }
+
+        /* Thêm style cho textarea trong bảng để giao diện gọn gàng hơn */
+        .inp-topic {
+            resize: vertical;
+            min-height: 40px;
         }
     </style>
 </head>
@@ -117,68 +127,63 @@
                             </div>
                         </div>
 
-                        <!-- BẢNG MA TRẬN -->
+                        <!-- BẢNG MA TRẬN MỚI (ĐA DÒNG NỘI DUNG) -->
                         <div class="table-responsive mb-3">
                             <table class="table table-bordered matrix-table text-center align-middle mb-0 bg-light">
                                 <thead class="table-secondary text-dark">
                                     <tr>
-                                        <th style="width: 25%;">Dạng câu hỏi</th>
-                                        <th style="width: 15%;">Nhận biết</th>
-                                        <th style="width: 15%;">Thông hiểu</th>
-                                        <th style="width: 15%;">Vận dụng</th>
-                                        <th style="width: 15%;">Vận dụng cao</th>
-                                        <th style="width: 15%;" class="table-dark">Tổng cộng</th>
+                                        <th style="width: 25%;">Nội dung / Chủ đề</th>
+                                        <th style="width: 13%;">Nhận biết</th>
+                                        <th style="width: 13%;">Thông hiểu</th>
+                                        <th style="width: 13%;">Vận dụng</th>
+                                        <th style="width: 13%;">Vận dụng cao</th>
+                                        <th style="width: 13%;" class="table-dark">Tổng cộng</th>
+                                        <th style="width: 10%;">Xóa</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-start fw-bold text-success"><i
-                                                class="fas fa-circle-dot me-1"></i>TN 4 Lựa chọn</td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcq4-know" value="2" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcq4-understand" value="1" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcq4-apply" value="1" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcq4-high" value="0" min="0"></td>
-                                        <td class="fw-bold table-active" id="total-mcq4">4</td>
+                                
+                                <!-- Dạng 1: Trắc nghiệm 4 lựa chọn -->
+                                <tbody id="tbody-mcq4">
+                                    <tr class="table-primary text-start">
+                                        <td colspan="7" class="fw-bold align-middle">
+                                            <i class="fas fa-circle-dot me-1"></i> I. Trắc nghiệm 4 Lựa chọn
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcq4"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td class="text-start fw-bold text-secondary"><i
-                                                class="fas fa-square-check me-1"></i>TN Đúng / Sai</td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcqtf-know" value="1" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcqtf-understand" value="1" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcqtf-apply" value="0" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-mcqtf-high" value="0" min="0"></td>
-                                        <td class="fw-bold table-active" id="total-mcqtf">2</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start fw-bold text-dark"><i class="fas fa-paragraph me-1"></i>Tự
-                                            luận lập trình</td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-essay-know" value="0" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-essay-understand" value="0" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-essay-apply" value="0" min="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm matrix-input"
-                                                id="m-essay-high" value="1" min="0"></td>
-                                        <td class="fw-bold table-active" id="total-essay">1</td>
-                                    </tr>
+                                    <!-- Các dòng nội dung sẽ được render ở đây -->
                                 </tbody>
+
+                                <!-- Dạng 2: Trắc nghiệm Đúng / Sai -->
+                                <tbody id="tbody-mcqtf">
+                                    <tr class="table-info text-start">
+                                        <td colspan="7" class="fw-bold align-middle">
+                                            <i class="fas fa-square-check me-1"></i> II. Trắc nghiệm Đúng / Sai
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcqtf"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                        </td>
+                                    </tr>
+                                    <!-- Các dòng nội dung sẽ được render ở đây -->
+                                </tbody>
+
+                                <!-- Dạng 3: Tự luận -->
+                                <tbody id="tbody-essay">
+                                    <tr class="table-warning text-start">
+                                        <td colspan="7" class="fw-bold align-middle">
+                                            <i class="fas fa-paragraph me-1"></i> III. Tự luận lập trình
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-essay"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                        </td>
+                                    </tr>
+                                    <!-- Các dòng nội dung sẽ được render ở đây -->
+                                </tbody>
+
                                 <tfoot class="table-dark text-white fw-bold">
                                     <tr>
-                                        <td class="text-start">Tổng câu hệ thống:</td>
-                                        <td id="foot-know">3</td>
-                                        <td id="foot-understand">2</td>
-                                        <td id="foot-apply">1</td>
-                                        <td id="foot-high">1</td>
-                                        <td id="foot-grand-total" class="bg-primary">7</td>
+                                        <td class="text-start">Tổng số câu toàn bài:</td>
+                                        <td id="foot-know">0</td>
+                                        <td id="foot-understand">0</td>
+                                        <td id="foot-apply">0</td>
+                                        <td id="foot-high">0</td>
+                                        <td id="foot-grand-total" class="bg-primary">0</td>
+                                        <td></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -187,7 +192,7 @@
                         <!-- Ô PROMPT BỔ SUNG -->
                         <div class="mb-3">
                             <label for="additional-text" class="form-label fw-bold text-secondary"><i
-                                    class="fas fa-keyboard me-2"></i>Yêu cầu nội dung trọng tâm đề thi:</label>
+                                    class="fas fa-keyboard me-2"></i>Yêu cầu nội dung trọng tâm đề thi chung:</label>
                             <textarea class="form-control font-monospace border-secondary" id="additional-text" rows="3"
                                 placeholder="Ví dụ: Đề kiểm tra cấu trúc dữ liệu mảng 1 chiều trong C++, chú trọng giải thuật tìm kiếm..."></textarea>
                         </div>
@@ -285,30 +290,6 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        const inputs = {
-            mcq4: {
-                know: document.getElementById('m-mcq4-know'),
-                understand: document.getElementById('m-mcq4-understand'),
-                apply: document.getElementById('m-mcq4-apply'),
-                high: document.getElementById('m-mcq4-high'),
-                total: document.getElementById('total-mcq4')
-            },
-            mcqtf: {
-                know: document.getElementById('m-mcqtf-know'),
-                understand: document.getElementById('m-mcqtf-understand'),
-                apply: document.getElementById('m-mcqtf-apply'),
-                high: document.getElementById('m-mcqtf-high'),
-                total: document.getElementById('total-mcqtf')
-            },
-            essay: {
-                know: document.getElementById('m-essay-know'),
-                understand: document.getElementById('m-essay-understand'),
-                apply: document.getElementById('m-essay-apply'),
-                high: document.getElementById('m-essay-high'),
-                total: document.getElementById('total-essay')
-            }
-        };
-
         const foot = {
             know: document.getElementById('foot-know'),
             understand: document.getElementById('foot-understand'),
@@ -347,25 +328,74 @@
             localStorage.setItem('exam_builder_manual_key', apiKeyInput.value.trim());
         });
 
+        // 2. XỬ LÝ ĐỘNG THÊM DÒNG NỘI DUNG MA TRẬN
+        function addTopicRow(type, topic = "", k = 0, u = 0, a = 0, h = 0) {
+            const tbody = document.getElementById(`tbody-${type}`);
+            const tr = document.createElement('tr');
+            tr.className = 'topic-row bg-white';
+            tr.dataset.type = type;
+            
+            // THAY ĐỔI: Sử dụng thẻ <textarea> cho ô nhập nội dung thay vì <input>
+            tr.innerHTML = `
+                <td><textarea class="form-control form-control-sm inp-topic" rows="2" placeholder="Tên nội dung/chủ đề...">${topic}</textarea></td>
+                <td><input type="number" class="form-control form-control-sm matrix-input inp-k" value="${k}" min="0"></td>
+                <td><input type="number" class="form-control form-control-sm matrix-input inp-u" value="${u}" min="0"></td>
+                <td><input type="number" class="form-control form-control-sm matrix-input inp-a" value="${a}" min="0"></td>
+                <td><input type="number" class="form-control form-control-sm matrix-input inp-h" value="${h}" min="0"></td>
+                <td class="fw-bold table-active row-total">0</td>
+                <td><button class="btn btn-sm btn-outline-danger btn-del-row" title="Xóa nội dung này"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+
+            tr.querySelectorAll('.matrix-input').forEach(inp => inp.addEventListener('input', calculateMatrix));
+            tr.querySelector('.inp-topic').addEventListener('input', saveMatrixState);
+            tr.querySelector('.btn-del-row').addEventListener('click', () => {
+                tr.remove();
+                calculateMatrix();
+            });
+
+            calculateMatrix();
+        }
+
+        document.getElementById('btn-add-mcq4').addEventListener('click', () => addTopicRow('mcq4'));
+        document.getElementById('btn-add-mcqtf').addEventListener('click', () => addTopicRow('mcqtf'));
+        document.getElementById('btn-add-essay').addEventListener('click', () => addTopicRow('essay'));
+
+        // Hàm trích xuất dữ liệu ma trận từ DOM
+        function getMatrixData(type) {
+            const rows = document.querySelectorAll(`#tbody-${type} .topic-row`);
+            const data = [];
+            rows.forEach(row => {
+                data.push({
+                    topic: row.querySelector('.inp-topic').value,
+                    k: parseInt(row.querySelector('.inp-k').value) || 0,
+                    u: parseInt(row.querySelector('.inp-u').value) || 0,
+                    a: parseInt(row.querySelector('.inp-a').value) || 0,
+                    h: parseInt(row.querySelector('.inp-h').value) || 0
+                });
+            });
+            return data;
+        }
+
         function calculateMatrix() {
-            let grandTotal = 0;
             let totalKnow = 0, totalUnderstand = 0, totalApply = 0, totalHigh = 0;
 
-            ['mcq4', 'mcqtf', 'essay'].forEach(type => {
-                const k = parseInt(inputs[type].know.value) || 0;
-                const u = parseInt(inputs[type].understand.value) || 0;
-                const a = parseInt(inputs[type].apply.value) || 0;
-                const h = parseInt(inputs[type].high.value) || 0;
+            document.querySelectorAll('.topic-row').forEach(row => {
+                const k = parseInt(row.querySelector('.inp-k').value) || 0;
+                const u = parseInt(row.querySelector('.inp-u').value) || 0;
+                const a = parseInt(row.querySelector('.inp-a').value) || 0;
+                const h = parseInt(row.querySelector('.inp-h').value) || 0;
 
                 const rowSum = k + u + a + h;
-                inputs[type].total.innerText = rowSum;
+                row.querySelector('.row-total').innerText = rowSum;
 
-                grandTotal += rowSum;
                 totalKnow += k;
                 totalUnderstand += u;
                 totalApply += a;
                 totalHigh += h;
             });
+
+            const grandTotal = totalKnow + totalUnderstand + totalApply + totalHigh;
 
             foot.know.innerText = totalKnow;
             foot.understand.innerText = totalUnderstand;
@@ -376,14 +406,14 @@
             saveMatrixState();
         }
 
-        // 2. CƠ CHẾ LƯU TRỮ VÀ DỒN DỮ LIỆU ĐỀ VÀO LOCAL STORAGE
+        // 3. CƠ CHẾ LƯU TRỮ VÀ ĐỒNG BỘ LOCAL STORAGE
         function saveMatrixState() {
             const state = {
                 additionalText: additionalText.value,
                 matrix: {
-                    mcq4: [inputs.mcq4.know.value, inputs.mcq4.understand.value, inputs.mcq4.apply.value, inputs.mcq4.high.value],
-                    mcqtf: [inputs.mcqtf.know.value, inputs.mcqtf.understand.value, inputs.mcqtf.apply.value, inputs.mcqtf.high.value],
-                    essay: [inputs.essay.know.value, inputs.essay.understand.value, inputs.essay.apply.value, inputs.essay.high.value]
+                    mcq4: getMatrixData('mcq4'),
+                    mcqtf: getMatrixData('mcqtf'),
+                    essay: getMatrixData('essay')
                 },
                 renderedHTML: {
                     mcq4: containerMcq4.innerHTML,
@@ -395,45 +425,47 @@
         }
 
         function loadMatrixState() {
-            // Nạp API Key đã lưu
             apiKeyInput.value = localStorage.getItem('exam_builder_manual_key') || "";
 
             const raw = localStorage.getItem('exam_builder_full_state');
-            if (!raw) return;
-            try {
-                const state = JSON.parse(raw);
-                additionalText.value = state.additionalText || "";
+            if (raw) {
+                try {
+                    const state = JSON.parse(raw);
+                    additionalText.value = state.additionalText || "";
 
-                if (state.matrix) {
-                    ['mcq4', 'mcqtf', 'essay'].forEach(type => {
-                        inputs[type].know.value = state.matrix[type][0];
-                        inputs[type].understand.value = state.matrix[type][1];
-                        inputs[type].apply.value = state.matrix[type][2];
-                        inputs[type].high.value = state.matrix[type][3];
-                    });
-                }
+                    if (state.matrix) {
+                        ['mcq4', 'mcqtf', 'essay'].forEach(type => {
+                            if (state.matrix[type] && state.matrix[type].length > 0) {
+                                state.matrix[type].forEach(row => {
+                                    addTopicRow(type, row.topic, row.k, row.u, row.a, row.h);
+                                });
+                            }
+                        });
+                    }
 
-                if (state.renderedHTML) {
-                    containerMcq4.innerHTML = state.renderedHTML.mcq4 || "";
-                    containerMcqTf.innerHTML = state.renderedHTML.mcqtf || "";
-                    containerEssay.innerHTML = state.renderedHTML.essay || "";
+                    if (state.renderedHTML) {
+                        containerMcq4.innerHTML = state.renderedHTML.mcq4 || "";
+                        containerMcqTf.innerHTML = state.renderedHTML.mcqtf || "";
+                        containerEssay.innerHTML = state.renderedHTML.essay || "";
+                    }
+                } catch (e) {
+                    console.error("Lỗi đồng bộ dữ liệu local storage: ", e);
                 }
-            } catch (e) {
-                console.error("Lỗi đồng bộ dữ liệu local storage: ", e);
             }
+            
+            // Đảm bảo có ít nhất 1 dòng mặc định nếu bảng trống
+            if(document.querySelectorAll('#tbody-mcq4 .topic-row').length === 0) addTopicRow('mcq4');
+            if(document.querySelectorAll('#tbody-mcqtf .topic-row').length === 0) addTopicRow('mcqtf');
+            if(document.querySelectorAll('#tbody-essay .topic-row').length === 0) addTopicRow('essay');
         }
 
-        document.querySelectorAll('.matrix-input').forEach(input => {
-            input.addEventListener('input', calculateMatrix);
-        });
         additionalText.addEventListener('input', saveMatrixState);
 
         // NẠP VÀ PHỤC HỒI DỮ LIỆU KHI KHỞI CHẠY TRANG WEB
         loadMatrixState();
-        calculateMatrix();
         updateQuestionNumbers();
 
-        // XỬ LÝ ĐỌC TÀI LIỆU NỀN TẢNG
+        // 4. XỬ LÝ ĐỌC TÀI LIỆU NỀN TẢNG
         fileInput.addEventListener('change', async (event) => {
             const files = event.target.files;
             if (files.length === 0) return;
@@ -521,13 +553,25 @@
                 if (next) item.parentNode.insertBefore(next, item);
             }
             updateQuestionNumbers();
-            saveMatrixState(); // Lưu vết sau khi đổi thứ tự câu
+            saveMatrixState();
         };
 
-        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI VỚI PROMPT PHỤ
+        // Hàm hỗ trợ build câu prompt cho từng nhóm dựa trên ma trận
+        function buildPromptForType(dataList) {
+            let text = "";
+            dataList.forEach(item => {
+                const sum = item.k + item.u + item.a + item.h;
+                if(sum > 0) {
+                    text += `   - Trọng tâm nội dung "${item.topic || 'Kiến thức chung'}": Sinh ${item.k} câu Nhận biết, ${item.u} câu Thông hiểu, ${item.a} câu Vận dụng, ${item.h} câu Vận dụng cao.\n`;
+                }
+            });
+            return text || "   - Không sinh câu hỏi nào cho phần này.\n";
+        }
+
+        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI
         window.reloadQuestion = async function (button, type) {
             const extraPrompt = prompt("Nhập yêu cầu phụ để sửa câu hỏi này (hoặc để trống nếu chỉ muốn AI đổi ngẫu nhiên thành câu khác):");
-            if (extraPrompt === null) return; // Người dùng ấn Hủy
+            if (extraPrompt === null) return;
 
             const apiKey = apiKeyInput.value.trim();
             if (!apiKey) {
@@ -541,13 +585,11 @@
             button.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
             button.disabled = true;
 
-            // 1. Lấy nội dung gốc
             let knowledgeBase = "";
             document.querySelectorAll('.extracted-text-data').forEach(tx => {
                 knowledgeBase += tx.value + "\n";
             });
 
-            // 2. Lấy nội dung câu hỏi hiện tại đang hiển thị
             let currentContentObj = {};
             if (type === 'mcq4') {
                 currentContentObj = {
@@ -582,9 +624,7 @@
                 const ai = new GoogleGenAI({ apiKey: apiKey });
                 let promptSystem = "";
 
-                // Gắn prompt
                 let promptUser = `Dựa trên văn bản tri thức nền tảng:\n${knowledgeBase || "Kiến thức tin học và lập trình cơ bản"}\n\nĐịnh hướng chung của đề thi: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}\n\n`;
-
                 promptUser += `Đây là NỘI DUNG CÂU HỎI HIỆN TẠI (định dạng JSON):\n${JSON.stringify(currentContentObj, null, 2)}\n\n`;
 
                 if (extraPrompt.trim() !== "") {
@@ -594,11 +634,11 @@
                 }
 
                 if (type === 'mcq4') {
-                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Câu hỏi", "code": "Code hoặc rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"}';
+                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu hỏi", "code": "Code/rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"}';
                 } else if (type === 'mcqtf') {
-                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Phát biểu", "code": "Code hoặc rỗng", "score": 0.5, "opt1": "Đúng", "opt2": "Sai", "ans": "Đúng"}';
+                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Phát biểu", "code": "Code/rỗng", "score": 0.5, "opt1": "Đúng", "opt2": "Sai", "ans": "Đúng"}';
                 } else if (type === 'essay') {
-                    promptSystem = 'Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ code): {"question": "Yêu cầu tự luận", "code": "Code hoặc rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"}';
+                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Yêu cầu tự luận", "code": "Code/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"}';
                 }
 
                 const response = await ai.models.generateContent({
@@ -612,7 +652,6 @@
 
                 const newData = JSON.parse(response.text);
 
-                // Cập nhật lại HTML trên giao diện
                 if (type === 'mcq4') {
                     item.querySelector('.form-q').value = newData.question || "";
                     item.querySelector('.form-code').value = newData.code || "";
@@ -657,7 +696,7 @@
             navCounts.essay.innerText = ce;
         }
 
-        // BIÊN SOẠN VỚI GEMINI API STUDIO
+        // 5. BIÊN SOẠN VỚI GEMINI API STUDIO
         aiGenerateBtn.addEventListener('click', async () => {
             const apiKey = apiKeyInput.value.trim();
             if (!apiKey) {
@@ -673,7 +712,7 @@
 
             aiGenerateBtn.disabled = true;
             aiGenerateBtn.className = "btn btn-secondary fw-bold shadow-sm";
-            aiGenerateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>Gemini đang phân tích bảng ma trận...`;
+            aiGenerateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>Gemini đang phân tích bảng ma trận đa dòng...`;
 
             try {
                 const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -686,29 +725,25 @@
                     "essay": [ {"question": "Yêu cầu tự luận", "code": "Mã mẫu/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"} ]
                 }`;
 
+                const mcq4Data = getMatrixData('mcq4');
+                const mcqtfData = getMatrixData('mcqtf');
+                const essayData = getMatrixData('essay');
+
                 const promptUser = `
                 Dựa trên văn bản tri thức:
                 ${knowledgeBase || "Kiến thức tin học và giải thuật lập trình"}
                 
-                Yêu cầu bổ sung: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}
+                Yêu cầu bổ sung chung: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}
                 Code minh họa phải thêm ở phần "code" trong json. Không thêm trong "question".
 
-                Hãy sinh chính xác số câu theo cấu trúc phân phối ma trận chi tiết này:
+                Hãy sinh CHÍNH XÁC số lượng câu hỏi theo cấu trúc phân phối ma trận chi tiết này (Cực kỳ quan trọng: Phải sinh đúng số lượng câu phân bổ theo đúng nội dung/chủ đề được liệt kê):
+
                 1. Trắc nghiệm 4 lựa chọn: 
-                   - Sinh ${parseInt(inputs.mcq4.know.value)} câu Nhận biết.
-                   - Sinh ${parseInt(inputs.mcq4.understand.value)} câu Thông hiểu.
-                   - Sinh ${parseInt(inputs.mcq4.apply.value)} câu Vận dụng.
-                   - Sinh ${parseInt(inputs.mcq4.high.value)} câu Vận dụng cao.
+                ${buildPromptForType(mcq4Data)}
                 2. Trắc nghiệm Đúng / Sai:
-                   - Sinh ${parseInt(inputs.mcqtf.know.value)} câu Nhận biết.
-                   - Sinh ${parseInt(inputs.mcqtf.understand.value)} câu Thông hiểu.
-                   - Sinh ${parseInt(inputs.mcqtf.apply.value)} câu Vận dụng.
-                   - Sinh ${parseInt(inputs.mcqtf.high.value)} câu Vận dụng cao.
+                ${buildPromptForType(mcqtfData)}
                 3. Tự luận lập trình:
-                   - Sinh ${parseInt(inputs.essay.know.value)} câu Nhận biết.
-                   - Sinh ${parseInt(inputs.essay.understand.value)} câu Thông hiểu.
-                   - Sinh ${parseInt(inputs.essay.apply.value)} câu Vận dụng.
-                   - Sinh ${parseInt(inputs.essay.high.value)} câu Vận dụng cao.
+                ${buildPromptForType(essayData)}
                 `;
 
                 const response = await ai.models.generateContent({
@@ -812,8 +847,8 @@
                 }
 
                 updateQuestionNumbers();
-                saveMatrixState(); // Lưu đề thi mới vào Storage
-                alert("Đề kiểm tra ma trận đã được thiết lập thành công!");
+                saveMatrixState();
+                alert("Đề kiểm tra bám sát đa chủ đề đã được thiết lập thành công!");
 
             } catch (err) {
                 console.error(err);
@@ -825,7 +860,7 @@
             }
         });
 
-        // SỰ KIỆN NÚT RESET TOÀN CỤC TRÊN NAVBAR (XÁC THỰC HAI LỚP)
+        // SỰ KIỆN NÚT RESET TOÀN CỤC TRÊN NAVBAR
         factoryResetBtn.addEventListener('click', () => {
             const token = prompt("CẢNH BÁO: Hành động này sẽ xóa sạch cấu hình ma trận, danh sách API Key lưu trữ và các câu hỏi hiện tại.\n\nHãy nhập chữ 'OK' vào ô bên dưới để xác nhận dọn dẹp:");
             if (token === "OK") {
@@ -842,6 +877,7 @@
             return text.replace(/\n/g, "<br>");
         }
 
+        // XUẤT WORD
         function buildAndDownloadWord(includeAnswers) {
             const mcq4Items = containerMcq4.querySelectorAll('.question-item');
             const mcqTfItems = containerMcqTf.querySelectorAll('.question-item');
