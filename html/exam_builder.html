@@ -109,21 +109,11 @@
                     <div class="card-body p-3 bg-white">
                         <!-- CHỌN VÀ NHẬP KEY -->
                         <div class="row g-2 mb-3">
-                            <div class="col-12 col-md-4">
-                                <label for="api-select" class="form-label small fw-bold text-secondary mb-1">Tài khoản
-                                    Studio:</label>
-                                <select class="form-select border-secondary" id="api-select">
-                                    <option value="" selected>-- Dán Key thủ công (Lưu Local) --</option>
-                                    <option value="KEY 1">Tài khoản Studio (KEY 1)</option>
-                                    <option value="KEY 2">Tài khoản Studio (KEY 2)</option>
-                                    <option value="KEY 3">Tài khoản Studio (KEY 3)</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-8">
+                            <div class="col-12">
                                 <label for="api-key-input" class="form-label small fw-bold text-secondary mb-1">Gemini
-                                    API Key:</label>
+                                    API Key (Tự động lưu Local):</label>
                                 <input type="password" class="form-control border-secondary" id="api-key-input"
-                                    placeholder="AIzaSy...">
+                                    placeholder="Nhập API Key bắt đầu bằng AIzaSy...">
                             </div>
                         </div>
 
@@ -343,7 +333,6 @@
         const clearInputBtn = document.getElementById('clear-input-btn');
         const aiGenerateBtn = document.getElementById('ai-generate-btn');
         const apiKeyInput = document.getElementById('api-key-input');
-        const apiSelect = document.getElementById('api-select');
 
         const containerMcq4 = document.getElementById('container-mcq-4');
         const containerMcqTf = document.getElementById('container-mcq-tf');
@@ -353,30 +342,9 @@
 
         let fileCounter = 0;
 
-        // DANH SÁCH KEY ĐƯỢC CUNG CẤP CỐ ĐỊNH (KHÔNG LƯU LOCAL STORAGE)
-        const API_STORAGE = {
-            "KEY 1": "AIzaSyA_-2FzTkpTON7MayAn9AeLAOq8inKc4Q0",
-            "KEY 2": "AIzaSyB2kK1CEIxcixe6M3RxDfMcPf2yIpQYM0k",
-            "KEY 3": "AIzaSyA8OEzFBhS8_b8HBcKod7ITd9tYVhEiIZw"
-        };
-
-        // 1. QUẢN LÝ THAY ĐỔI VÀ KHÔI PHỤC API KEY CHUẨN XÁC
-        apiSelect.addEventListener('change', () => {
-            const selected = apiSelect.value;
-            if (selected && API_STORAGE[selected]) {
-                apiKeyInput.value = API_STORAGE[selected];
-            } else {
-                // Nếu chọn thủ công -> khôi phục lại key thủ công cũ từ Storage (nếu có)
-                apiKeyInput.value = localStorage.getItem('exam_builder_manual_key') || "";
-            }
-            saveMatrixState();
-        });
-
+        // 1. QUẢN LÝ LƯU TRỮ API KEY TRỰC TIẾP VÀO LOCAL STORAGE
         apiKeyInput.addEventListener('input', () => {
-            // Chỉ lưu vào Storage khi người dùng chọn chế độ dán thủ công
-            if (apiSelect.value === "") {
-                localStorage.setItem('exam_builder_manual_key', apiKeyInput.value.trim());
-            }
+            localStorage.setItem('exam_builder_manual_key', apiKeyInput.value.trim());
         });
 
         function calculateMatrix() {
@@ -408,10 +376,9 @@
             saveMatrixState();
         }
 
-        // 2. CƠ CHẾ LƯU TRỮ VÀ DỒN DỮ LIỆU ĐỀ VÀO LOCAL STORAGE LÊN TỚI 5MB
+        // 2. CƠ CHẾ LƯU TRỮ VÀ DỒN DỮ LIỆU ĐỀ VÀO LOCAL STORAGE
         function saveMatrixState() {
             const state = {
-                selectAccount: apiSelect.value,
                 additionalText: additionalText.value,
                 matrix: {
                     mcq4: [inputs.mcq4.know.value, inputs.mcq4.understand.value, inputs.mcq4.apply.value, inputs.mcq4.high.value],
@@ -428,18 +395,14 @@
         }
 
         function loadMatrixState() {
+            // Nạp API Key đã lưu
+            apiKeyInput.value = localStorage.getItem('exam_builder_manual_key') || "";
+
             const raw = localStorage.getItem('exam_builder_full_state');
             if (!raw) return;
             try {
                 const state = JSON.parse(raw);
                 additionalText.value = state.additionalText || "";
-                apiSelect.value = state.selectAccount || "";
-
-                if (apiSelect.value === "") {
-                    apiKeyInput.value = localStorage.getItem('exam_builder_manual_key') || "";
-                } else if (API_STORAGE[apiSelect.value]) {
-                    apiKeyInput.value = API_STORAGE[apiSelect.value];
-                }
 
                 if (state.matrix) {
                     ['mcq4', 'mcqtf', 'essay'].forEach(type => {
@@ -561,7 +524,7 @@
             saveMatrixState(); // Lưu vết sau khi đổi thứ tự câu
         };
 
-        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI VỚI PROMPT PHỤ (GOM PROMPT CŨ + HIỆN TẠI + PROMPT MỚI)
+        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI VỚI PROMPT PHỤ
         window.reloadQuestion = async function (button, type) {
             const extraPrompt = prompt("Nhập yêu cầu phụ để sửa câu hỏi này (hoặc để trống nếu chỉ muốn AI đổi ngẫu nhiên thành câu khác):");
             if (extraPrompt === null) return; // Người dùng ấn Hủy
@@ -578,13 +541,13 @@
             button.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
             button.disabled = true;
 
-            // 1. Lấy nội dung gốc (tri thức + prompt bổ sung tổng thể)
+            // 1. Lấy nội dung gốc
             let knowledgeBase = "";
             document.querySelectorAll('.extracted-text-data').forEach(tx => {
                 knowledgeBase += tx.value + "\n";
             });
 
-            // 2. Lấy nội dung câu hỏi hiện tại đang hiển thị trên form để làm context
+            // 2. Lấy nội dung câu hỏi hiện tại đang hiển thị
             let currentContentObj = {};
             if (type === 'mcq4') {
                 currentContentObj = {
@@ -619,13 +582,11 @@
                 const ai = new GoogleGenAI({ apiKey: apiKey });
                 let promptSystem = "";
 
-                // Gắn prompt cũ (định hướng chung)
+                // Gắn prompt
                 let promptUser = `Dựa trên văn bản tri thức nền tảng:\n${knowledgeBase || "Kiến thức tin học và lập trình cơ bản"}\n\nĐịnh hướng chung của đề thi: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}\n\n`;
 
-                // Gắn nội dung câu hỏi hiện tại
                 promptUser += `Đây là NỘI DUNG CÂU HỎI HIỆN TẠI (định dạng JSON):\n${JSON.stringify(currentContentObj, null, 2)}\n\n`;
 
-                // Gắn prompt mới (yêu cầu phụ)
                 if (extraPrompt.trim() !== "") {
                     promptUser += `YÊU CẦU ĐẶC BIỆT TỪ NGƯỜI DÙNG CHO CÂU HỎI NÀY:\n"${extraPrompt}"\n-> Hãy dựa vào yêu cầu này và nội dung hiện tại để chỉnh sửa, sinh ra câu hỏi mới cho phù hợp nhất.\n\n`;
                 } else {
@@ -864,7 +825,7 @@
             }
         });
 
-        // THÊM: SỰ KIỆN NÚT RESET TOÀN CỤC TRÊN NAVBAR (XÁC THỰC HAI LỚP)
+        // SỰ KIỆN NÚT RESET TOÀN CỤC TRÊN NAVBAR (XÁC THỰC HAI LỚP)
         factoryResetBtn.addEventListener('click', () => {
             const token = prompt("CẢNH BÁO: Hành động này sẽ xóa sạch cấu hình ma trận, danh sách API Key lưu trữ và các câu hỏi hiện tại.\n\nHãy nhập chữ 'OK' vào ô bên dưới để xác nhận dọn dẹp:");
             if (token === "OK") {
