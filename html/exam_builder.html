@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="../assets/icon.ico">
-    <title>HỌC TẬP TIN HỌC - BẢNG MA TRẬN CHI TIẾT</title>
+    <title>TẠO ĐỀ KIỂM TRA TỰ ĐỘNG</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -34,7 +34,7 @@
             padding: 8px;
             border-radius: 4px;
         }
-        
+
         .topic-row .btn-del-row {
             padding: 0.15rem 0.5rem;
         }
@@ -48,6 +48,7 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
         }
+
         .handle-grab {
             cursor: grab;
             padding: 4px 8px;
@@ -58,67 +59,100 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.15s ease;
-            
+
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
+
         .handle-grab:hover {
             background-color: #e9ecef;
             color: #212529 !important;
         }
+
         .handle-grab:active {
             cursor: grabbing;
         }
+
         .question-item.dragging {
             opacity: 0.4;
             border: 2px dashed #0d6efd !important;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #print-paper-zone,
+            #print-paper-zone * {
+                visibility: visible;
+            }
+
+            #print-paper-zone {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
 
 <body class="bg-light m-0 p-0" style="overflow-x: hidden;">
-    <!-- Thanh điều hướng Navbar -->
-    <nav class="navbar navbar-dark bg-dark fixed-top shadow">
+    <nav class="navbar navbar-dark bg-dark fixed-top shadow no-print">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <a class="navbar-brand d-flex align-items-center" href="../index.html">
                 <img src="../assets/icon.png" alt="Logo" width="30" height="30"
                     class="d-inline-block align-text-top me-2">
                 <strong>HỌC TẬP TIN HỌC</strong>
             </a>
-            <button class="btn btn-sm btn-danger fw-bold shadow-sm" id="nav-factory-reset-btn">
-                <i class="fas fa-radiation me-1"></i>Xóa tất cả dữ liệu hệ thống
-            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-light fw-bold shadow-sm" id="btn-system-import">
+                    <i class="fas fa-file-import me-1"></i>Nhập cấu trúc (.htth)
+                </button>
+                <button class="btn btn-sm btn-light text-dark fw-bold shadow-sm" id="btn-system-export">
+                    <i class="fas fa-file-export me-1"></i>Xuất cấu trúc (.htth)
+                </button>
+                <button class="btn btn-sm btn-danger fw-bold shadow-sm" id="nav-factory-reset-btn">
+                    <i class="fas fa-radiation me-1"></i>Xóa hết dữ liệu
+                </button>
+            </div>
+            <input type="file" id="system-file-reader" accept=".htth" class="d-none">
         </div>
     </nav>
 
-    <div class="container-fluid mt-5 pt-3 px-3 w-100">
+    <div class="container-fluid mt-5 pt-3 px-3 w-100 no-print">
         <div class="alert alert-success h5 text-center my-3 shadow-sm text-success" role="alert">
-            <i class="fas fa-chalkboard-teacher me-2"></i>Hệ thống biên soạn đề kiểm tra ma trận tích hợp Google AI
-            Studio (Nhấn SHIFT + F5 để cập nhật bản mới nhất) 
+            <i class="fas fa-chalkboard-teacher me-2"></i>Hệ thống biên soạn đề kiểm tra theo ma trận (Nhấn SHIFT + F5
+            để làm mới)
         </div>
 
         <div class="row g-3 mt-2">
-            <!-- CỘT TRÁI: TẢI TÀI LIỆU NỀN -->
             <div class="col-12 col-xl-4">
                 <div class="card shadow-sm mb-3 border-secondary">
                     <div class="card-header bg-dark text-white py-3">
-                        <h5 class="card-title mb-0"><i class="fas fa-file-invoice me-2"></i>Nguồn tri thức (PDF / Word)
-                        </h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-file-invoice me-2"></i>Tài liệu tham chiếu (PDF /
+                            Word)</h5>
                     </div>
                     <div class="card-body p-3 bg-white">
                         <div class="mb-3">
-                            <label for="file-input" class="form-label fw-bold text-secondary"><i
-                                    class="fas fa-folder-open me-2"></i>Chọn file cung cấp dữ liệu:</label>
+                            <label for="file-input" class="form-label fw-bold text-secondary">
+                                <i class="fas fa-folder-open me-2"></i>Chọn tệp dữ liệu:
+                            </label>
                             <input class="form-control border-secondary" type="file" id="file-input" accept=".pdf,.docx"
                                 multiple>
                         </div>
                         <div class="d-none" id="global-status">
                             <div class="alert alert-secondary d-flex align-items-center mb-0" role="alert">
                                 <div class="spinner-border spinner-border-sm text-secondary me-3" role="status"></div>
-                                <span id="global-status-text" class="text-secondary">Đang đọc dữ liệu...</span>
+                                <span id="global-status-text" class="text-secondary">Đang đọc tệp...</span>
                             </div>
                         </div>
                     </div>
@@ -127,78 +161,79 @@
                 <div class="card shadow-sm mb-3 border-secondary">
                     <div
                         class="card-header bg-secondary text-white d-flex justify-content-between align-items-center py-2">
-                        <h6 class="fw-bold mb-0"><i class="fas fa-list-ol me-2"></i>Văn bản trích xuất:</h6>
-                        <button class="btn btn-sm btn-danger" id="clear-all-btn"><i class="fas fa-trash-alt me-1"></i>Xóa
-                            sạch</button>
+                        <h6 class="fw-bold mb-0"><i class="fas fa-list-ol me-2"></i>Nội dung đã trích xuất:</h6>
+                        <button class="btn btn-sm btn-danger" id="clear-all-btn">
+                            <i class="fas fa-trash-alt me-1"></i>Xóa hết
+                        </button>
                     </div>
                     <div class="accordion accordion-flush" id="pdfAccordion">
                         <div class="text-center text-muted py-5 border-bottom bg-white" id="empty-message">
-                            <i class="fas fa-cloud-upload-alt fa-2x mb-2 d-block text-secondary"></i>Chưa có tài liệu
-                            nền.
+                            <i class="fas fa-cloud-upload-alt fa-2x mb-2 d-block text-secondary"></i>Chưa có tài liệu.
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: BẢNG MA TRẬN ĐỀ THI CHI TIẾT -->
             <div class="col-12 col-xl-8">
                 <div class="card shadow-sm border-secondary mb-3">
                     <div class="card-header bg-dark text-white py-3">
-                        <h5 class="card-title mb-0"><i class="fas fa-th me-2"></i>Cấu hình Ma trận nhận thức chi tiết
-                            từng dạng</h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-th me-2"></i>Ma trận đề thi</h5>
                     </div>
                     <div class="card-body p-3 bg-white">
-                        <!-- CHỌN VÀ NHẬP KEY -->
                         <div class="row g-2 mb-3">
                             <div class="col-12">
-                                <label for="api-key-input" class="form-label small fw-bold text-secondary mb-1">Gemini
-                                    API Key (Tự động lưu Local):</label>
+                                <label for="api-key-input" class="form-label small fw-bold text-secondary mb-1">
+                                    Gemini API Key (Tự động lưu vào trình duyệt):
+                                </label>
                                 <input type="password" class="form-control border-secondary" id="api-key-input"
-                                    placeholder="Nhập API Key bắt đầu bằng AIzaSy...">
+                                    placeholder="Nhập API Key (AIzaSy...)">
                             </div>
                         </div>
 
-                        <!-- BẢNG MA TRẬN MỚI (ĐA DÒNG NỘI DUNG) -->
                         <div class="table-responsive mb-3">
                             <table class="table table-bordered matrix-table text-center align-middle mb-0 bg-light">
                                 <thead class="table-secondary text-dark">
                                     <tr>
-                                        <th style="width: 25%;">Nội dung / Chủ đề</th>
+                                        <th style="width: 25%;">Chủ đề / Nội dung</th>
                                         <th style="width: 13%;">Nhận biết</th>
                                         <th style="width: 13%;">Thông hiểu</th>
                                         <th style="width: 13%;">Vận dụng</th>
                                         <th style="width: 13%;">Vận dụng cao</th>
-                                        <th style="width: 13%;" class="table-dark">Tổng cộng</th>
+                                        <th style="width: 13%;" class="table-dark">Tổng</th>
                                         <th style="width: 10%;">Xóa</th>
                                     </tr>
                                 </thead>
-                                
-                                <!-- Dạng 1: Trắc nghiệm 4 lựa chọn -->
+
                                 <tbody id="tbody-mcq4">
                                     <tr class="table-primary text-start">
                                         <td colspan="7" class="fw-bold align-middle">
-                                            <i class="fas fa-circle-dot me-1"></i> I. Trắc nghiệm 4 Lựa chọn
-                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcq4"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                            <i class="fas fa-circle-dot me-1"></i> I. Trắc nghiệm 4 lựa chọn
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcq4">
+                                                <i class="fas fa-plus me-1"></i> Thêm chủ đề
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
 
-                                <!-- Dạng 2: Trắc nghiệm Đúng / Sai -->
                                 <tbody id="tbody-mcqtf">
                                     <tr class="table-info text-start">
                                         <td colspan="7" class="fw-bold align-middle">
-                                            <i class="fas fa-square-check me-1"></i> II. Trắc nghiệm Đúng / Sai (Mỗi câu 4 ý)
-                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcqtf"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                            <i class="fas fa-square-check me-1"></i> II. Trắc nghiệm Đúng / Sai (Mỗi câu
+                                            4 ý)
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-mcqtf">
+                                                <i class="fas fa-plus me-1"></i> Thêm chủ đề
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
 
-                                <!-- Dạng 3: Tự luận -->
                                 <tbody id="tbody-essay">
                                     <tr class="table-warning text-start">
                                         <td colspan="7" class="fw-bold align-middle">
                                             <i class="fas fa-paragraph me-1"></i> III. Tự luận lập trình
-                                            <button class="btn btn-sm btn-success float-end" id="btn-add-essay"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
+                                            <button class="btn btn-sm btn-success float-end" id="btn-add-essay">
+                                                <i class="fas fa-plus me-1"></i> Thêm chủ đề
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -217,93 +252,208 @@
                             </table>
                         </div>
 
-                        <!-- Ô PROMPT BỔ SUNG -->
                         <div class="mb-3">
-                            <label for="additional-text" class="form-label fw-bold text-secondary"><i
-                                    class="fas fa-keyboard me-2"></i>Yêu cầu nội dung trọng tâm đề thi chung:</label>
+                            <label for="additional-text" class="form-label fw-bold text-secondary">
+                                <i class="fas fa-keyboard me-2"></i>Yêu cầu đặc trưng cho đề thi (tùy chọn):
+                            </label>
                             <textarea class="form-control font-monospace border-secondary" id="additional-text" rows="3"
-                                placeholder="Ví dụ: Đề kiểm tra cấu trúc dữ liệu mảng 1 chiều trong C++, chú trọng giải thuật tìm kiếm..."></textarea>
+                                placeholder="Ví dụ: Chú trọng thuật toán tìm kiếm, lập trình mảng 1 chiều trong C++..."></textarea>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
-                            <button class="btn btn-outline-danger" id="clear-input-btn"><i
-                                    class="fas fa-eraser me-1"></i>Xóa lệnh</button>
-                            <button class="btn btn-success fw-bold shadow-sm px-4" id="ai-generate-btn"><i
-                                    class="fas fa-wand-magic-sparkles me-1"></i>Gọi Gemini API Studio</button>
+                            <button class="btn btn-outline-danger" id="clear-input-btn">
+                                <i class="fas fa-eraser me-1"></i>Xóa yêu cầu
+                            </button>
+                            <button class="btn btn-success fw-bold shadow-sm px-4" id="ai-generate-btn">
+                                <i class="fas fa-wand-magic-sparkles me-1"></i>Tạo đề thi bằng AI
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KHU VỰC ĐIỀU HƯỚNG NHANH & XUẤT ĐỀ -->
-        <div class="card shadow-sm border-secondary mb-3 nav-sticky-panel bg-white">
+        <div class="card shadow-sm border-secondary mb-3 nav-sticky-panel bg-white no-print">
             <div class="card-body p-2 d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap" id="quick-navigation-panel">
-                    <span class="fw-bold text-secondary small"><i class="fas fa-compass me-1"></i>Đi nhanh đến:</span>
-                    <a href="#sec-mcq4" class="btn btn-sm btn-outline-success fw-bold"><i
-                            class="fas fa-circle-dot me-1"></i>I. Trắc nghiệm 4 LC (<span
-                            id="nav-count-mcq4">0</span>)</a>
-                    <a href="#sec-mcqtf" class="btn btn-sm btn-outline-secondary fw-bold"><i
-                            class="fas fa-square-check me-1"></i>II. Trắc nghiệm Đ/S (<span
-                            id="nav-count-mcqtf">0</span>)</a>
-                    <a href="#sec-essay" class="btn btn-sm btn-outline-dark fw-bold"><i
-                            class="fas fa-paragraph me-1"></i>III. Tự luận (<span id="nav-count-essay">0</span>)</a>
+                    <span class="fw-bold text-secondary small"><i class="fas fa-compass me-1"></i>Xem nhanh:</span>
+                    <a href="#sec-mcq4" class="btn btn-sm btn-outline-success fw-bold">
+                        Phần I (<span id="nav-count-mcq4">0</span>)
+                    </a>
+                    <a href="#sec-mcqtf" class="btn btn-sm btn-outline-secondary fw-bold">
+                        Phần II (<span id="nav-count-mcqtf">0</span>)
+                    </a>
+                    <a href="#sec-essay" class="btn btn-sm btn-outline-dark fw-bold">
+                        Phần III (<span id="nav-count-essay">0</span>)
+                    </a>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <label for="export-selection" class="form-label small fw-bold text-dark m-0"><i
-                            class="fas fa-file-word text-primary me-1"></i>Tùy chọn xuất bản Word:</label>
-                    <select class="form-select form-select-sm border-primary fw-bold text-primary bg-light"
-                        id="export-selection" style="width: 250px;">
-                        <option value="" selected disabled>-- Chọn cấu trúc in đề --</option>
-                        <option value="NO_ANS">In Đề bài (Không đáp án)</option>
-                        <option value="WITH_ANS">In Đề thi + Đáp án chi tiết</option>
-                    </select>
+                    <button type="button" class="btn btn-secondary text-white fw-bold py-2" id="btn-preview-exam">
+                        <i class="fas fa-eye me-2"></i>Xem trước
+                    </button>
+                    <button class="btn btn-dark fw-bold shadow-sm px-4" data-bs-toggle="modal"
+                        data-bs-target="#exportModal">
+                        <i class="fas fa-print me-1"></i>Tải đề thi
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- HIỂN THỊ ĐỀ THI RENDER TỰ ĐỘNG -->
-        <div class="card shadow-sm my-3 border-secondary" id="exam-section">
+        <!-- Modal Xem Trước Đề Thi -->
+        <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content border-secondary shadow-lg">
+                    <div class="modal-header bg-dark text-white py-3">
+                        <h5 class="modal-title fw-bold" id="previewModalLabel">
+                            <i class="fas fa-file-alt me-2 text-white"></i>BẢN XEM TRƯỚC ĐỀ THI
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <!-- Chứa nội dung render y hệt như xuất file Word -->
+                    <div class="modal-body p-4 bg-white" id="preview-modal-body"
+                        style="min-height: 400px; max-height: 70vh;">
+                        <!-- HTML đề thi sẽ được bắn vào đây -->
+                    </div>
+                    <div class="modal-footer bg-light border-0 py-2 d-flex justify-content-between">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="preview-toggle-answers">
+                            <label class="form-check-label fw-bold text-danger" for="preview-toggle-answers">Hiển thị
+                                đáp án & hướng dẫn chấm</label>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary fw-bold me-2"
+                                data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-primary fw-bold" id="btn-preview-download">
+                                <i class="fas fa-download me-1"></i>Tải file (.doc)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-secondary shadow-lg">
+                    <div class="modal-header bg-dark text-white py-3">
+                        <h5 class="modal-title fw-bold" id="exportModalLabel">
+                            <i class="fas fa-sliders me-2 text-white"></i>TÙY CHỌN TẢI VỀ VÀ XUẤT ĐỀ THI
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-light">
+                        <div class="row g-4">
+                            <div class="col-12 col-md-6">
+                                <div class="card h-100 shadow-sm border-0 rounded-3">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="p-2 mb-2 bg-primary-subtle rounded text-primary fw-bold small">
+                                            <i class="fas fa-file-word me-1"></i>ĐỊNH DẠNG MICROSOFT WORD (.DOC)
+                                        </div>
+                                        <p class="small text-muted mb-3">Tải file định dạng chuẩn văn phòng, dễ dàng
+                                            chỉnh sửa lề, phông chữ và in ấn trực tiếp.</p>
+                                        <div class="d-grid gap-2">
+                                            <button type="button"
+                                                class="btn btn-outline-primary fw-bold py-2 btn-export-action"
+                                                data-action="word-no">
+                                                <i class="fas fa-cloud-download-alt me-2"></i>Tải Đề bài (Học sinh)
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-primary text-white fw-bold py-2 btn-export-action"
+                                                data-action="word-yes">
+                                                <i class="fas fa-save me-2"></i>Tải Đề bài + Đáp án
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-outline-dark fw-bold py-2 btn-export-action"
+                                                data-action="word-matrix">
+                                                <i class="fas fa-table me-2"></i>Tải Ma trận đề
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="card h-100 shadow-sm border-0 rounded-3">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="p-2 mb-2 bg-success-subtle rounded text-success fw-bold small">
+                                            <i class="fas fa-file-excel me-1"></i>BẢNG TÍNH PHẲNG (EXCEL / CSV)
+                                        </div>
+                                        <p class="small text-muted mb-3">Xuất danh sách câu hỏi theo cấu trúc hàng dòng,
+                                            thích hợp nhập (import) vào hệ thống trộn đề thi trực tuyến.</p>
+                                        <div class="d-grid gap-2">
+                                            <button type="button"
+                                                class="btn btn-outline-success fw-bold py-2 btn-export-action"
+                                                data-action="excel-no">
+                                                <i class="fas fa-table me-2"></i>Xuất Excel Đề gốc
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-success text-white fw-bold py-2 btn-export-action"
+                                                data-action="excel-yes">
+                                                <i class="fas fa-file-spreadsheet me-2"></i>Xuất Excel kèm đáp án
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-dark text-white fw-bold py-2 btn-export-action"
+                                                data-action="lms-csv">
+                                                <i class="fas fa-file-csv me-2"></i>Xuất file cấu trúc CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-dark border-0 py-2 d-flex justify-content-between">
+                        <div class="small text-white-50"></div>
+                        <button type="button" class="btn btn-sm btn-secondary fw-bold px-3" data-bs-dismiss="modal">Đóng
+                            cửa sổ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm my-3 border-secondary no-print" id="exam-section">
             <div class="card-header bg-dark text-white py-3">
-                <h4 class="mb-0 text-center"><i class="fas fa-file-signature me-2"></i>ĐỀ KIỂM TRA ĐƯỢC CẤU TRÚC HOÀN
-                    CHỈNH</h4>
+                <h4 class="mb-0 text-center"><i class="fas fa-file-signature me-2"></i>NỘI DUNG ĐỀ KIỂM TRA ĐÃ KHỞI TẠO
+                </h4>
             </div>
             <div class="card-body p-3 bg-white">
-
                 <div class="mb-4" id="sec-mcq4">
-                    <h5 class="text-success border-bottom pb-2 fw-bold"><i class="fas fa-circle-dot me-2"></i>Phần I:
-                        Câu hỏi trắc nghiệm khách quan (4 lựa chọn)</h5>
-                    <div id="container-mcq-4" class="list-group list-group-flush question-container" data-type="mcq4"></div>
+                    <h5 class="text-success border-bottom pb-2 fw-bold">
+                        <i class="fas fa-circle-dot me-2"></i>Phần I: Câu hỏi trắc nghiệm (4 lựa chọn)
+                    </h5>
+                    <div id="container-mcq-4" class="list-group list-group-flush question-container" data-type="mcq4">
+                    </div>
                 </div>
 
                 <div class="mb-4" id="sec-mcqtf">
-                    <h5 class="text-secondary border-bottom pb-2 fw-bold"><i class="fas fa-square-check me-2"></i>Phần
-                        II: Câu hỏi trắc nghiệm Đúng / Sai</h5>
-                    <div id="container-mcq-tf" class="list-group list-group-flush question-container" data-type="mcqtf"></div>
+                    <h5 class="text-secondary border-bottom pb-2 fw-bold">
+                        <i class="fas fa-square-check me-2"></i>Phần II: Câu hỏi trắc nghiệm Đúng / Sai
+                    </h5>
+                    <div id="container-mcq-tf" class="list-group list-group-flush question-container" data-type="mcqtf">
+                    </div>
                 </div>
 
                 <div class="mb-3" id="sec-essay">
-                    <h5 class="text-dark border-bottom pb-2 fw-bold"><i class="fas fa-paragraph me-2"></i>Phần III: Câu
-                        hỏi tự luận định nghĩa / Lập trình</h5>
-                    <div id="container-essay" class="list-group list-group-flush question-container" data-type="essay"></div>
+                    <h5 class="text-dark border-bottom pb-2 fw-bold">
+                        <i class="fas fa-paragraph me-2"></i>Phần III: Câu hỏi tự luận / Lập trình
+                    </h5>
+                    <div id="container-essay" class="list-group list-group-flush question-container" data-type="essay">
+                    </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <footer class="bg-dark text-light text-center py-3 mt-5">
-        <div class="container-fluid">
-            <p class="mb-0">Được thiết kế bởi <b>NGUYỄN TẤN PHÁT</b></p>
-        </div>
-    </footer>
+    <div id="print-paper-zone"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script type="importmap">
       {
@@ -346,11 +496,10 @@
         const containerMcq4 = document.getElementById('container-mcq-4');
         const containerMcqTf = document.getElementById('container-mcq-tf');
         const containerEssay = document.getElementById('container-essay');
-        const exportSelection = document.getElementById('export-selection');
         const factoryResetBtn = document.getElementById('nav-factory-reset-btn');
 
         let fileCounter = 0;
-        let scrollInterval = null; // Quản lý luồng Auto-Scroll toàn cục
+        let scrollInterval = null;
 
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('exam_builder_manual_key', apiKeyInput.value.trim());
@@ -361,23 +510,23 @@
             const tr = document.createElement('tr');
             tr.className = 'topic-row bg-white';
             tr.dataset.type = type;
-            
+
             tr.innerHTML = `
-                <td><textarea class="form-control form-control-sm inp-topic" rows="2" placeholder="Tên nội dung/chủ đề...">${topic}</textarea></td>
+                <td><textarea class="form-control form-control-sm inp-topic" rows="2" placeholder="Tên chủ đề...">${topic}</textarea></td>
                 <td><input type="number" class="form-control form-control-sm matrix-input inp-k" value="${k}" min="0"></td>
                 <td><input type="number" class="form-control form-control-sm matrix-input inp-u" value="${u}" min="0"></td>
                 <td><input type="number" class="form-control form-control-sm matrix-input inp-a" value="${a}" min="0"></td>
                 <td><input type="number" class="form-control form-control-sm matrix-input inp-h" value="${h}" min="0"></td>
                 <td class="fw-bold table-active row-total">0</td>
-                <td><button class="btn btn-sm btn-outline-danger btn-del-row" title="Xóa nội dung này"><i class="fas fa-trash-alt"></i></button></td>
+                <td><button class="btn btn-sm btn-outline-danger btn-del-row" title="Xóa dòng này"><i class="fas fa-trash-alt"></i></button></td>
             `;
             tbody.appendChild(tr);
 
             tr.querySelectorAll('.matrix-input').forEach(inp => inp.addEventListener('input', calculateMatrix));
             tr.querySelector('.inp-topic').addEventListener('input', saveMatrixState);
-            
+
             tr.querySelector('.btn-del-row').addEventListener('click', () => {
-                if (confirm("Bạn có chắc chắn muốn xóa dòng nội dung/chủ đề ma trận này không?")) {
+                if (confirm("Xóa dòng nội dung này?")) {
                     tr.remove();
                     calculateMatrix();
                 }
@@ -435,8 +584,20 @@
         }
 
         function saveMatrixState() {
+            const txtFilesBackup = [];
+            document.querySelectorAll('.accordion-item').forEach(el => {
+                const fId = el.id.replace('item-', '');
+                txtFilesBackup.push({
+                    id: fId,
+                    name: el.querySelector('.text-truncate').innerText.trim(),
+                    content: el.querySelector('.extracted-text-data').value,
+                    iconClass: el.querySelector('.accordion-button i').className
+                });
+            });
+
             const state = {
                 additionalText: additionalText.value,
+                knowledgeFiles: txtFilesBackup,
                 matrix: {
                     mcq4: getMatrixData('mcq4'),
                     mcqtf: getMatrixData('mcqtf'),
@@ -460,7 +621,44 @@
                     const state = JSON.parse(raw);
                     additionalText.value = state.additionalText || "";
 
+                    if (state.knowledgeFiles && state.knowledgeFiles.length > 0) {
+                        if (emptyMessage) emptyMessage.classList.add('d-none');
+                        pdfAccordion.innerHTML = "";
+                        state.knowledgeFiles.forEach(f => {
+                            const accordionItem = document.createElement('div');
+                            accordionItem.className = 'accordion-item';
+                            accordionItem.id = `item-${f.id}`;
+                            accordionItem.innerHTML = `
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed fw-semibold d-flex align-items-center bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${f.id}">
+                                        <span class="badge bg-success me-2" id="badge-${f.id}"><i class='fas fa-check-circle me-1'></i>Xong</span>
+                                        <span class="text-truncate me-auto" style="max-width: 60%; text-transform: none;"><i class="${f.iconClass}"></i> ${f.name}</span>
+                                        <span class="text-dark ps-2 pe-3 context-delete-btn" style="cursor: pointer;" data-target="${f.id}"><i class="fas fa-times-circle text-secondary"></i> Xóa</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse-${f.id}" class="accordion-collapse collapse" data-bs-parent="#pdfAccordion">
+                                    <div class="accordion-body bg-white p-3">
+                                        <textarea class="form-control bg-light font-monospace extracted-text-data" id="text-${f.id}" rows="6" readonly>${f.content}</textarea>
+                                    </div>
+                                </div>
+                            `;
+                            pdfAccordion.appendChild(accordionItem);
+                            accordionItem.querySelector('.context-delete-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                if (confirm(`Xóa tài liệu này khỏi dữ liệu tham chiếu?`)) {
+                                    accordionItem.remove();
+                                    if (pdfAccordion.querySelectorAll('.accordion-item').length === 0 && emptyMessage) emptyMessage.classList.remove('d-none');
+                                    saveMatrixState();
+                                }
+                            });
+                        });
+                    }
+
                     if (state.matrix) {
+                        document.getElementById('tbody-mcq4').querySelectorAll('.topic-row').forEach(r => r.remove());
+                        document.getElementById('tbody-mcqtf').querySelectorAll('.topic-row').forEach(r => r.remove());
+                        document.getElementById('tbody-essay').querySelectorAll('.topic-row').forEach(r => r.remove());
+
                         ['mcq4', 'mcqtf', 'essay'].forEach(type => {
                             if (state.matrix[type] && state.matrix[type].length > 0) {
                                 state.matrix[type].forEach(row => {
@@ -479,10 +677,10 @@
                     console.error("Lỗi đồng bộ dữ liệu local storage: ", e);
                 }
             }
-            
-            if(document.querySelectorAll('#tbody-mcq4 .topic-row').length === 0) addTopicRow('mcq4');
-            if(document.querySelectorAll('#tbody-mcqtf .topic-row').length === 0) addTopicRow('mcqtf');
-            if(document.querySelectorAll('#tbody-essay .topic-row').length === 0) addTopicRow('essay');
+
+            if (document.querySelectorAll('#tbody-mcq4 .topic-row').length === 0) addTopicRow('mcq4');
+            if (document.querySelectorAll('#tbody-mcqtf .topic-row').length === 0) addTopicRow('mcqtf');
+            if (document.querySelectorAll('#tbody-essay .topic-row').length === 0) addTopicRow('essay');
 
             initDragAndDrop();
         }
@@ -506,7 +704,7 @@
                 const fileExtension = file.name.split('.').pop().toLowerCase();
                 let fileIcon = fileExtension === 'docx' ? "fa-file-word text-primary" : "fa-file-pdf text-danger";
 
-                globalStatusText.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>Đang nạp: ${file.name}`;
+                globalStatusText.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý: ${file.name}`;
 
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item';
@@ -529,9 +727,10 @@
 
                 accordionItem.querySelector('.context-delete-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (confirm(`Bạn có chắc chắn muốn xóa tài liệu "${file.name}" khỏi hệ thống tri thức không?`)) {
+                    if (confirm(`Xóa tài liệu "${file.name}"?`)) {
                         document.getElementById(`item-${fileId}`).remove();
                         if (pdfAccordion.querySelectorAll('.accordion-item').length === 0 && emptyMessage) emptyMessage.classList.remove('d-none');
+                        saveMatrixState();
                     }
                 });
 
@@ -541,6 +740,7 @@
                         document.getElementById(`text-${fileId}`).value = res.value;
                         document.getElementById(`badge-${fileId}`).className = "badge bg-success me-2";
                         document.getElementById(`badge-${fileId}`).innerHTML = "<i class='fas fa-check-circle me-1'></i>Xong";
+                        saveMatrixState();
                     });
                 } else {
                     const arrayBuffer = await file.arrayBuffer();
@@ -555,6 +755,7 @@
                         document.getElementById(`text-${fileId}`).value = fullText;
                         document.getElementById(`badge-${fileId}`).className = "badge bg-success me-2";
                         document.getElementById(`badge-${fileId}`).innerHTML = "<i class='fas fa-check-circle me-1'></i>Xong";
+                        saveMatrixState();
                     });
                 }
             }
@@ -562,14 +763,15 @@
         });
 
         clearAllBtn.addEventListener('click', () => {
-            if (confirm("Bạn có chắc chắn muốn xóa SẠCH tất cả tài liệu nền hiện tại không?")) {
+            if (confirm("Xóa toàn bộ dữ liệu tham chiếu hiện tại?")) {
                 pdfAccordion.innerHTML = "";
                 if (emptyMessage) emptyMessage.classList.remove('d-none');
+                saveMatrixState();
             }
         });
 
         clearInputBtn.addEventListener('click', () => {
-            if (confirm("Bạn có chắc chắn muốn xóa trống nội dung ô yêu cầu bổ sung không?")) {
+            if (confirm("Xóa trống ô yêu cầu bổ sung?")) {
                 additionalText.value = "";
                 saveMatrixState();
             }
@@ -588,10 +790,9 @@
             saveMatrixState();
         };
 
-        // NÂNG CẤP TOÀN DIỆN: Tích hợp cơ chế Auto-Scroll màn hình khi kéo chuột sát mép trên/dưới
         function initDragAndDrop() {
             const containers = document.querySelectorAll('.question-container');
-            
+
             containers.forEach(container => {
                 container.addEventListener('mousedown', (e) => {
                     const handle = e.target.closest('.handle-grab');
@@ -606,7 +807,7 @@
                 container.addEventListener('mouseup', (e) => {
                     const item = container.querySelector('.question-item[draggable="true"]');
                     if (item) item.removeAttribute('draggable');
-                    clearInterval(scrollInterval); // Đảm bảo dừng cuộn khi thả chuột ra
+                    clearInterval(scrollInterval);
                 });
 
                 container.addEventListener('dragstart', (e) => {
@@ -624,7 +825,7 @@
                     if (!item) return;
                     item.classList.remove('dragging');
                     item.removeAttribute('draggable');
-                    clearInterval(scrollInterval); // Dừng luồng cuộn tự động khi kết thúc drag
+                    clearInterval(scrollInterval);
                     updateQuestionNumbers();
                     saveMatrixState();
                 });
@@ -634,24 +835,20 @@
                     const draggingItem = container.querySelector('.dragging');
                     if (!draggingItem) return;
 
-                    // THÊM MỚI: Xử lý tính toán vùng biên để kích hoạt Auto-Scroll
-                    const threshold = 100; // Khoảng cách vùng kích hoạt cuộn (px tính từ mép màn hình)
-                    const speedMultiplier = 0.4; // Hệ số điều chỉnh tốc độ cuộn
-                    
+                    const threshold = 100;
+                    const speedMultiplier = 0.4;
+
                     const viewportHeight = window.innerHeight;
                     const mouseInClientY = e.clientY;
 
-                    // Xóa lặp chu kỳ cuộn cũ trước khi đăng ký mốc tính toán mới
                     clearInterval(scrollInterval);
 
                     if (mouseInClientY < threshold) {
-                        // Chuột tiến sát mép trên -> Tự động cuộn lên
                         const speed = Math.round((threshold - mouseInClientY) * speedMultiplier);
                         scrollInterval = setInterval(() => {
                             window.scrollBy(0, -speed);
                         }, 15);
                     } else if (mouseInClientY > viewportHeight - threshold) {
-                        // Chuột tiến sát mép dưới -> Tự động cuộn xuống
                         const speed = Math.round((mouseInClientY - (viewportHeight - threshold)) * speedMultiplier);
                         scrollInterval = setInterval(() => {
                             window.scrollBy(0, speed);
@@ -686,7 +883,7 @@
             let text = "";
             dataList.forEach(item => {
                 const sum = item.k + item.u + item.a + item.h;
-                if(sum > 0) {
+                if (sum > 0) {
                     text += `   - Trọng tâm nội dung "${item.topic || 'Kiến thức chung'}": Sinh ${item.k} câu Nhận biết, ${item.u} câu Thông hiểu, ${item.a} câu Vận dụng, ${item.h} câu Vận dụng cao.\n`;
                 }
             });
@@ -694,7 +891,7 @@
         }
 
         window.reloadQuestion = async function (button, type) {
-            const extraPrompt = prompt("Nhập yêu cầu phụ để sửa câu hỏi này (hoặc để trống nếu chỉ muốn AI đổi ngẫu nhiên thành câu khác):");
+            const extraPrompt = prompt("Nhập yêu cầu sửa câu hỏi (để trống nếu muốn AI đổi câu hỏi ngẫu nhiên):");
             if (extraPrompt === null) return;
 
             const apiKey = apiKeyInput.value.trim();
@@ -761,7 +958,7 @@
                 if (type === 'mcq4') {
                     promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu hỏi", "code": "Code/rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"}';
                 } else if (type === 'mcqtf') {
-                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu dẫn", "code": "Code/rỗng", "score": 1.0, "a": {"stmt": "Phát biểu a", "ans": "Đúng/Sai"}, "b": {"stmt": "Phát biểu b", "ans": "Đúng/Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng/Sai"}, "d": {"stmt": "Phát biểu d", "ans": "Đúng/Sai"}}';
+                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu dẫn", "code": "Code/rỗng", "score": 1.0, "a": {"stmt": "Phát biểu a", "ans": "Đúng/Sai"}, "b": {"stmt": "Phát biểu b", "ans": "Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng/Sai"}, "d": {"stmt": "Phát biểu d", "ans": "Sai"}}';
                 } else if (type === 'essay') {
                     promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Yêu cầu tự luận", "code": "Code/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"}';
                 }
@@ -808,7 +1005,7 @@
                 saveMatrixState();
             } catch (err) {
                 console.error(err);
-                alert("Lỗi khi tải lại nội dung câu hỏi: " + err.message);
+                alert("Lỗi tải câu hỏi mới: " + err.message);
             } finally {
                 button.innerHTML = originalHtml;
                 button.disabled = false;
@@ -841,17 +1038,18 @@
 
             aiGenerateBtn.disabled = true;
             aiGenerateBtn.className = "btn btn-secondary fw-bold shadow-sm";
-            aiGenerateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>Gemini đang phân tích bảng ma trận đa dòng...`;
+            aiGenerateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>AI đang thiết kế cấu trúc đề thi...`;
 
             try {
                 const ai = new GoogleGenAI({ apiKey: apiKey });
 
-                const promptSystem = `Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy tạo đề bài dưới dạng JSON thuần túy (không bọc thẻ code markdown). 
+                const promptSystem = `Bạn là chuyên gia thiết kế ma trận kiểm định giáo dục môn Tin học. Hãy tạo đề bài dưới dạng JSON thuần túy (không bọc thẻ code markdown).
+                Tổng score các câu phải bằng 10. 
                 Cấu trúc JSON bắt buộc phải trả về như sau:
                 {
-                    "mcq4": [ {"question": "Câu hỏi", "code": "Đoạn code/rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"} ],
-                    "mcqTf": [ {"question": "Câu dẫn / Ngữ cảnh", "code": "Đoạn code/rỗng", "score": 1.0, "a": {"stmt": "Phát biểu a", "ans": "Đúng"}, "b": {"stmt": "Phát biểu b", "ans": "Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng"}, "d": {"stmt": "Phát biểu d", "ans": "Sai"}} ],
-                    "essay": [ {"question": "Yêu cầu tự luận", "code": "Mã mẫu/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"} ]
+                    "mcq4": [ {"question": "Câu hỏi", "code": "Đoạn code/rỗng", "score": ..., "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"} ],
+                    "mcqTf": [ {"question": "Câu dẫn / Ngữ cảnh", "code": "Đoạn code/rỗng", "score": ..., "a": {"stmt": "Phát biểu a", "ans": "Đúng"}, "b": {"stmt": "Phát biểu b", "ans": "Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng"}, "d": {"stmt": "Phát biểu d", "ans": "Sai"}} ],
+                    "essay": [ {"question": "Yêu cầu tự luận", "code": "Mã mẫu/rỗng", "score": ..., "guide": "Hướng dẫn chấm"} ]
                 }`;
 
                 const mcq4Data = getMatrixData('mcq4');
@@ -897,11 +1095,11 @@
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-success">
-                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    <span class="handle-grab text-secondary me-2" title="Kéo để đổi thứ tự câu hỏi"><i class="fas fa-grip-vertical"></i></span>
                                     Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm 4 lựa chọn)
                                 </span>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcq4')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcq4')" title="Tạo lại câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
@@ -917,7 +1115,7 @@
                                 <div class="col-6">C. <textarea class="form-control form-control-sm form-c border-secondary-subtle" rows="1">${q.c}</textarea></div>
                                 <div class="col-6">D. <textarea class="form-control form-control-sm form-d border-secondary-subtle" rows="1">${q.d}</textarea></div>
                             </div>
-                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <textarea class="form-control form-control-sm form-ans border-danger mt-1" rows="1">${q.ans}</textarea></div>
+                            <div class="mt-2 text-danger small fw-bold">Đáp án: <textarea class="form-control form-control-sm form-ans border-danger mt-1" rows="1">${q.ans}</textarea></div>
                         `;
                         containerMcq4.appendChild(div);
                     });
@@ -930,39 +1128,39 @@
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-secondary">
-                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
-                                    Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai đa ý)
+                                    <span class="handle-grab text-secondary me-2" title="Kéo để đổi thứ tự câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai)
                                 </span>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcqtf')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcqtf')" title="Tạo lại câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
                             </div>
                             <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2" placeholder="Câu dẫn/Ngữ cảnh...">${q.question}</textarea></div>
-                            <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="1" placeholder="Code (nếu có)">${q.code || ""}</textarea></div>
+                            <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="1" placeholder="Mã code (nếu có)">${q.code || ""}</textarea></div>
                             <div class="row g-2 mb-2">
                                 <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 1.0}" step="0.25"></div>
                             </div>
                             <div class="row g-2 small mb-1 align-items-center">
                                 <div class="col-1 fw-bold text-end">a)</div>
                                 <div class="col-8"><textarea class="form-control form-control-sm form-stmt-a border-secondary-subtle" rows="1">${q.a?.stmt || ''}</textarea></div>
-                                <div class="col-3"><select class="form-select form-select-sm form-ans-a border-danger text-danger fw-bold"><option value="Đúng" ${q.a?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.a?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-a border-danger text-danger fw-bold"><option value="Đúng" ${q.a?.ans === 'Đúng' ? 'selected' : ''}>Đúng</option><option value="Sai" ${q.a?.ans === 'Sai' ? 'selected' : ''}>Sai</option></select></div>
                             </div>
                             <div class="row g-2 small mb-1 align-items-center">
                                 <div class="col-1 fw-bold text-end">b)</div>
                                 <div class="col-8"><textarea class="form-control form-control-sm form-stmt-b border-secondary-subtle" rows="1">${q.b?.stmt || ''}</textarea></div>
-                                <div class="col-3"><select class="form-select form-select-sm form-ans-b border-danger text-danger fw-bold"><option value="Đúng" ${q.b?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.b?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-b border-danger text-danger fw-bold"><option value="Đúng" ${q.b?.ans === 'Đúng' ? 'selected' : ''}>Đúng</option><option value="Sai" ${q.b?.ans === 'Sai' ? 'selected' : ''}>Sai</option></select></div>
                             </div>
                             <div class="row g-2 small mb-1 align-items-center">
                                 <div class="col-1 fw-bold text-end">c)</div>
                                 <div class="col-8"><textarea class="form-control form-control-sm form-stmt-c border-secondary-subtle" rows="1">${q.c?.stmt || ''}</textarea></div>
-                                <div class="col-3"><select class="form-select form-select-sm form-ans-c border-danger text-danger fw-bold"><option value="Đúng" ${q.c?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.c?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-c border-danger text-danger fw-bold"><option value="Đúng" ${q.c?.ans === 'Đúng' ? 'selected' : ''}>Đúng</option><option value="Sai" ${q.c?.ans === 'Sai' ? 'selected' : ''}>Sai</option></select></div>
                             </div>
                             <div class="row g-2 small mb-1 align-items-center">
                                 <div class="col-1 fw-bold text-end">d)</div>
                                 <div class="col-8"><textarea class="form-control form-control-sm form-stmt-d border-secondary-subtle" rows="1">${q.d?.stmt || ''}</textarea></div>
-                                <div class="col-3"><select class="form-select form-select-sm form-ans-d border-danger text-danger fw-bold"><option value="Đúng" ${q.d?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.d?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-d border-danger text-danger fw-bold"><option value="Đúng" ${q.d?.ans === 'Đúng' ? 'selected' : ''}>Đúng</option><option value="Sai" ${q.d?.ans === 'Sai' ? 'selected' : ''}>Sai</option></select></div>
                             </div>
                         `;
                         containerMcqTf.appendChild(div);
@@ -976,11 +1174,11 @@
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-dark">
-                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    <span class="handle-grab text-secondary me-2" title="Kéo để đổi thứ tự câu hỏi"><i class="fas fa-grip-vertical"></i></span>
                                     Câu <span class="q-num">${i + 1}</span> (Tự luận lập trình)
                                 </span>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'essay')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
+                                    <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'essay')" title="Tạo lại câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
@@ -1002,156 +1200,717 @@
                 updateQuestionNumbers();
                 initDragAndDrop();
                 saveMatrixState();
-                alert("Đề kiểm tra bám sát đa chủ đề đã được thiết lập thành công!");
+                alert("Đề kiểm tra đã được khởi tạo thành công theo cấu trúc!");
 
             } catch (err) {
                 console.error(err);
-                alert("Lỗi phân tích cú pháp dữ liệu: " + err.message);
+                alert("Lỗi xử lý dữ liệu: " + err.message);
             } finally {
                 aiGenerateBtn.disabled = false;
                 aiGenerateBtn.className = "btn btn-success fw-bold shadow-sm px-4";
-                aiGenerateBtn.innerHTML = `<i class="fas fa-wand-magic-sparkles me-1"></i>Gọi Gemini API Studio`;
+                aiGenerateBtn.innerHTML = `<i class="fas fa-wand-magic-sparkles me-1"></i>Tạo đề thi bằng AI`;
             }
         });
 
         factoryResetBtn.addEventListener('click', () => {
-            const token = prompt("CẢNH BÁO: Hành động này sẽ xóa sạch cấu hình ma trận, danh sách API Key lưu trữ và các câu hỏi hiện tại.\n\nHãy nhập chữ 'OK' vào ô bên dưới để xác nhận dọn dẹp:");
+            const token = prompt("CẢNH BÁO: Hành động này sẽ xóa toàn bộ ma trận, khóa và câu hỏi hiện tại.\n\nNhập 'OK' để xác nhận:");
             if (token === "OK") {
                 localStorage.clear();
-                alert("Đã xóa sạch bộ nhớ cache hệ thống. Trang web sẽ tự động khởi động lại.");
+                alert("Hệ thống dữ liệu đã được xóa. Trang web đang tải lại.");
                 window.location.reload();
             } else if (token !== null) {
-                alert("Xác thực thất bại! Từ khóa không chính xác, hệ thống hủy lệnh xóa.");
+                alert("Từ khóa không chính xác. Hủy lệnh xóa.");
             }
         });
 
-        function formatLineBreaks(text) {
-            if (!text) return "";
-            return text.replace(/\n/g, "<br>");
+        // ==========================================
+        // XỬ LÝ ẤN BẢN VÀ EXPORT ĐA ĐỊNH DẠNG
+        // ==========================================
+
+        function formatLineBreaks(str) {
+            return str ? str.replace(/\n/g, '<br>') : '';
         }
 
-        function formatCodeForWord(text) {
-            if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replace(/ /g, "&nbsp;")
-                .replace(/\n/g, "<br>");
+        function formatCodeForWord(code) {
+            return code ? code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>').replace(/ /g, '&nbsp;') : '';
         }
 
-        function buildAndDownloadWord(includeAnswers) {
+        function generateCoreExamHTML(includeAnswers) {
             const mcq4Items = containerMcq4.querySelectorAll('.question-item');
             const mcqTfItems = containerMcqTf.querySelectorAll('.question-item');
             const essayItems = containerEssay.querySelectorAll('.question-item');
 
-            if (mcq4Items.length === 0 && mcqTfItems.length === 0 && essayItems.length === 0) {
-                alert("Không có nội dung câu hỏi để xuất bản!");
-                return;
+            let html = `
+        <div class="header-table-wrapper" style="width:100%; font-family:'Times New Roman', serif; font-size:11pt; line-height:1.25;">
+            <table style="width: 100%; margin-bottom: 15px; border-collapse:collapse;">
+                <tr>
+                    <td style="width: 45%; text-align: center; vertical-align: top;">
+                        SỞ GIÁO DỤC VÀ ĐÀO TẠO KHU VỰC<br>
+                        <b>TRƯỜNG THPT X</b><br>
+                        <span style="font-size: 9pt;">(Đề thi gồm: 0${essayItems.length ? '3' : '2'} phần)</span>
+                    </td>
+                    <td style="width: 55%; text-align: center; vertical-align: top; font-weight: bold;">
+                        KỲ KIỂM TRA ĐÁNH GIÁ ĐỊNH KỲ NĂM HỌC<br>
+                        MÔN: TIN HỌC<br>
+                        <span style="font-weight: normal; font-size: 11pt;">Thời gian làm bài: 45 phút (Không kể thời gian phát đề)</span>
+                    </td>
+                </tr>
+            </table>
+            <div style="text-align: center; font-weight: bold; font-size: 13pt; margin-top: 5px; margin-bottom: 15px; text-transform: uppercase;">
+                ĐỀ KIỂM TRA CHÍNH THỨC ${includeAnswers ? '<br><span style="color:#b22222; font-size:10.5pt;">(HƯỚNG DẪN CHẤM & ĐÁP ÁN DÀNH CHO GIÁO VIÊN)</span>' : ''}
+            </div>
+            <hr style="border: none; border-top: 0.75pt solid black; margin-top:-10px; margin-bottom: 10px;">
+    `;
+
+            // ================= PHẦN I =================
+            if (mcq4Items.length > 0) {
+                html += `<div style="font-weight: bold; margin-top: 10px; margin-bottom: 4px;">PHẦN I. Câu trắc nghiệm khách quan (4 lựa chọn).</div>`;
+                html += `<div style="font-style: italic; margin-bottom: 6px; font-size: 10pt;">Thí sinh trả lời từ câu 1 đến câu ${mcq4Items.length}. Mỗi câu hỏi chỉ chọn một phương án.</div>`;
+
+                mcq4Items.forEach((item, index) => {
+                    const qText = item.querySelector('.form-q').value;
+                    const codeVal = item.querySelector('.form-code').value;
+                    const optA = item.querySelector('.form-a').value;
+                    const optB = item.querySelector('.form-b').value;
+                    const optC = item.querySelector('.form-c').value;
+                    const optD = item.querySelector('.form-d').value;
+                    const scoreVal = item.querySelector('.form-score').value;
+
+                    const maxLen = Math.max(optA.length, optB.length, optC.length, optD.length);
+                    let optionsHtml = "";
+
+                    if (maxLen <= 15) {
+                        optionsHtml = `
+                    <table style="width:100%; margin-top:2px; margin-bottom:2px; border-collapse:collapse; text-align:left;">
+                        <tr>
+                            <td style="width: 25%;"><b>A.</b> ${optA}</td>
+                            <td style="width: 25%;"><b>B.</b> ${optB}</td>
+                            <td style="width: 25%;"><b>C.</b> ${optC}</td>
+                            <td style="width: 25%;"><b>D.</b> ${optD}</td>
+                        </tr>
+                    </table>`;
+                    } else if (maxLen <= 35) {
+                        optionsHtml = `
+                    <table style="width:100%; margin-top:2px; margin-bottom:2px; border-collapse:collapse; text-align:left;">
+                        <tr>
+                            <td style="width: 50%;"><b>A.</b> ${optA}</td>
+                            <td style="width: 50%;"><b>B.</b> ${optB}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 50%;"><b>C.</b> ${optC}</td>
+                            <td style="width: 50%;"><b>D.</b> ${optD}</td>
+                        </tr>
+                    </table>`;
+                    } else {
+                        optionsHtml = `
+                    <div style="margin-left:10px; line-height:1.25; text-align:left;">
+                        <b>A.</b> ${optA}<br><b>B.</b> ${optB}<br><b>C.</b> ${optC}<br><b>D.</b> ${optD}
+                    </div>`;
+                    }
+
+                    html += `
+                <div style="margin-bottom: 8px; text-align: left;">
+                    <b>Câu ${index + 1}:</b> <span style="font-style:italic; font-size:9.5pt; color:#555;">(${scoreVal} điểm)</span> ${qText} 
+                    ${codeVal.trim() ? `<div style="font-family:'Courier New', monospace; font-size:9.5pt; background-color:#f2f2f2; border:0.5pt solid #ccc; padding:4px 6px; margin:3px 0; white-space:pre-wrap; line-height:1.1;">${formatCodeForWord(codeVal)}</div>` : ''}
+                    ${optionsHtml}
+                    ${includeAnswers ? `<span style="color:#b22222; font-weight:bold; font-size:10pt; display:block; margin-top:2px;">→ Đáp án đúng: ${item.querySelector('.form-ans').value}</span>` : ''}
+                </div>`;
+                });
             }
 
-            let titleSuffix = includeAnswers ? " (CÓ ĐÁP ÁN)" : " (ĐỀ BÀI)";
+            // ================= PHẦN II =================
+            if (mcqTfItems.length > 0) {
+                html += `<div style="font-weight: bold; margin-top: 15px; margin-bottom: 4px;">PHẦN II. Câu trắc nghiệm Đúng / Sai.</div>`;
+                html += `<div style="font-style: italic; margin-bottom: 6px; font-size: 10pt;">Thí sinh trả lời từ câu 1 đến câu ${mcqTfItems.length}. Trong từng ý a), b), c), d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai.</div>`;
 
-            let htmlContent = `
+                mcqTfItems.forEach((item, index) => {
+                    const qText = item.querySelector('.form-q').value;
+                    const codeVal = item.querySelector('.form-code').value;
+                    const ansA = item.querySelector('.form-ans-a').value;
+                    const ansB = item.querySelector('.form-ans-b').value;
+                    const ansC = item.querySelector('.form-ans-c').value;
+                    const ansD = item.querySelector('.form-ans-d').value;
+                    const scoreVal = item.querySelector('.form-score').value;
+
+                    html += `
+                <div style="margin-bottom: 12px; text-align: left; page-break-inside: avoid;">
+                    <div><b>Câu ${index + 1}:</b> <span style="font-style:italic; font-size:9.5pt; color:#555;">(${scoreVal} điểm)</span> ${qText}</div>
+                    ${codeVal.trim() ? `<div style="font-family:'Courier New', monospace; font-size:9.5pt; background-color:#f2f2f2; border:0.5pt solid #ccc; padding:4px 6px; margin:3px 0; white-space:pre-wrap; line-height:1.1;">${formatCodeForWord(codeVal)}</div>` : ''}
+                    
+                    <table style="width:100%; border-collapse:collapse; margin-top:3px; margin-bottom:3px;">
+                        <tr style="background-color: #f9f9f9; font-weight: bold;">
+                            <th style="border:0.5pt solid black; text-align:center; padding:3px; font-size:10.5pt; width: 10%;">STT</th>
+                            <th style="border:0.5pt solid black; text-align:left; padding:3px 5px; font-size:10.5pt; width: 70%;">Các phát biểu / Nội dung kiểm định</th>
+                            <th style="border:0.5pt solid black; text-align:center; padding:3px; font-size:10.5pt; width: 10%;">Đúng</th>
+                            <th style="border:0.5pt solid black; text-align:center; padding:3px; font-size:10.5pt; width: 10%;">Sai</th>
+                        </tr>
+                        <tr>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">a)</td>
+                            <td style="border:0.5pt solid black; text-align:left; padding:3px 5px;">${item.querySelector('.form-stmt-a').value}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansA === 'Đúng' ? '<b>X</b>' : ''}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansA === 'Sai' ? '<b>X</b>' : ''}</td>
+                        </tr>
+                        <tr>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">b)</td>
+                            <td style="border:0.5pt solid black; text-align:left; padding:3px 5px;">${item.querySelector('.form-stmt-b').value}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansB === 'Đúng' ? '<b>X</b>' : ''}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansB === 'Sai' ? '<b>X</b>' : ''}</td>
+                        </tr>
+                        <tr>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">c)</td>
+                            <td style="border:0.5pt solid black; text-align:left; padding:3px 5px;">${item.querySelector('.form-stmt-c').value}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansC === 'Đúng' ? '<b>X</b>' : ''}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansC === 'Sai' ? '<b>X</b>' : ''}</td>
+                        </tr>
+                        <tr>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">d)</td>
+                            <td style="border:0.5pt solid black; text-align:left; padding:3px 5px;">${item.querySelector('.form-stmt-d').value}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansD === 'Đúng' ? '<b>X</b>' : ''}</td>
+                            <td style="border:0.5pt solid black; text-align:center; padding:3px;">${includeAnswers && ansD === 'Sai' ? '<b>X</b>' : ''}</td>
+                        </tr>
+                    </table>
+                </div>`;
+                });
+            }
+
+            // ================= PHẦN III (Đã loại bỏ trùng lặp log) =================
+            if (essayItems.length > 0) {
+                html += `<div style="font-weight: bold; margin-top: 15px; margin-bottom: 4px;">PHẦN III. Câu hỏi tự luận / Lập trình.</div>`;
+                html += `<div style="font-style: italic; margin-bottom: 6px; font-size: 10pt;">Thí sinh trình bày lời giải chi tiết và mã nguồn vào tờ giấy thi.</div>`;
+
+                essayItems.forEach((item, index) => {
+                    const qText = item.querySelector('.form-q').value;
+                    const codeVal = item.querySelector('.form-code').value;
+                    const scoreVal = item.querySelector('.form-score').value;
+                    const guideVal = item.querySelector('.form-ans').value;
+
+                    html += `
+                <div style="margin-bottom: 8px; text-align: left; page-break-inside: avoid;">
+                    <b>Câu ${index + 1}:</b> <span style="font-style:italic; font-size:9.5pt; color:#555;">(${scoreVal} điểm)</span> ${formatLineBreaks(qText)}
+                    ${codeVal.trim() ? `<div style="font-family:'Courier New', monospace; font-size:9.5pt; background-color:#f2f2f2; border:0.5pt solid #ccc; padding:4px 6px; margin:3px 0; white-space:pre-wrap; line-height:1.1;">${formatCodeForWord(codeVal)}</div>` : ''}
+                    ${includeAnswers ? `<div style="margin-top:3px; margin-bottom:8px; padding-left:10px; border-left:1.5pt solid black; font-size:10.5pt; text-align:left; background-color:#fafafa;"><b>Hướng dẫn chấm mẫu:</b><br>${formatLineBreaks(guideVal)}</div>` : ''}
+                </div>`;
+                });
+            }
+
+            html += `
+            <div style="text-align: center; margin-top: 25px; font-weight: bold; font-size: 11pt; letter-spacing: 2px;">--- HẾT ---</div>
+            <div style="text-align: center; font-size: 9.5pt; font-style: italic; margin-top: 5px; color:#555555;">(Giám thị không giải thích gì thêm. Thí sinh không được sử dụng tài liệu)</div>
+        </div>
+    `;
+            return html;
+        }
+
+        // Hàm xử lý xuất file cấu trúc ma trận nằm ngang chuẩn của Bộ Giáo dục (Bản Trắng Đen Chuẩn Tỷ Lệ & Ép Khổ Ngang)
+        function executeDownloadMatrixWordFlow() {
+            const mcq4Data = getMatrixData('mcq4');
+            const mcqtfData = getMatrixData('mcqtf');
+            const essayData = getMatrixData('essay');
+
+            const allTopics = {};
+
+            function mergeToTopics(dataList, sectionLabel) {
+                dataList.forEach(item => {
+                    if (!item.topic.trim()) return;
+                    if (!allTopics[item.topic]) {
+                        allTopics[item.topic] = { k4: 0, u4: 0, a4: 0, h4: 0, ktf: 0, utf: 0, atf: 0, htf: 0, ke: 0, ue: 0, ae: 0, he: 0 };
+                    }
+                    if (sectionLabel === 'mcq4') {
+                        allTopics[item.topic].k4 += item.k; allTopics[item.topic].u4 += item.u;
+                        allTopics[item.topic].a4 += item.a; allTopics[item.topic].h4 += item.h;
+                    } else if (sectionLabel === 'mcqtf') {
+                        allTopics[item.topic].ktf += item.k; allTopics[item.topic].utf += item.u;
+                        allTopics[item.topic].atf += item.a; allTopics[item.topic].htf += item.h;
+                    } else if (sectionLabel === 'essay') {
+                        allTopics[item.topic].ke += item.k; allTopics[item.topic].ue += item.u;
+                        allTopics[item.topic].ae += item.a; allTopics[item.topic].he += item.h;
+                    }
+                });
+            }
+
+            mergeToTopics(mcq4Data, 'mcq4');
+            mergeToTopics(mcqtfData, 'mcqtf');
+            mergeToTopics(essayData, 'essay');
+
+            // Đơn giá điểm cố định quy định theo cấu hình hệ thống
+            let scoreWeightMcq4 = 0.25;
+            let scoreWeightMcqtf = 1.0;
+            let scoreWeightEssay = 2.0;
+
+            let rowsHtml = "";
+            let index = 1;
+
+            let colTotals = {
+                k4: 0, u4: 0, a4: 0, h4: 0,
+                ktf: 0, utf: 0, atf: 0, htf: 0,
+                ke: 0, ue: 0, ae: 0, he: 0,
+                tK: 0, tU: 0, tA: 0, tH: 0
+            };
+
+            // Bước 1: Tính tổng toàn bộ câu hỏi và tổng điểm thực tế trước để làm mẫu số
+            let totalActualScore = 0;
+            for (const [topicName, val] of Object.entries(allTopics)) {
+                let rowPoints = (val.k4 + val.u4 + val.a4 + val.h4) * scoreWeightMcq4 +
+                    (val.ktf + val.utf + val.atf + val.htf) * scoreWeightMcqtf +
+                    (val.ke + val.ue + val.ae + val.he) * scoreWeightEssay;
+                totalActualScore += rowPoints;
+            }
+            // Khóa an toàn tránh chia cho 0 nếu ma trận trống
+            if (totalActualScore === 0) totalActualScore = 10.0;
+
+            // Bước 2: Sinh dữ liệu các hàng
+            for (const [topicName, val] of Object.entries(allTopics)) {
+                let tK = val.k4 + val.ktf + val.ke;
+                let tU = val.u4 + val.utf + val.ue;
+                let tA = val.a4 + val.atf + val.ae;
+                let tH = val.h4 + val.htf + val.he;
+
+                let rowPoints = (val.k4 + val.u4 + val.a4 + val.h4) * scoreWeightMcq4 +
+                    (val.ktf + val.utf + val.atf + val.htf) * scoreWeightMcqtf +
+                    (val.ke + val.ue + val.ae + val.he) * scoreWeightEssay;
+
+                let rowPercent = Math.round((rowPoints / totalActualScore) * 100);
+
+                colTotals.k4 += val.k4; colTotals.u4 += val.u4; colTotals.a4 += val.a4; colTotals.h4 += val.h4;
+                colTotals.ktf += val.ktf; colTotals.utf += val.utf; colTotals.atf += val.atf; colTotals.htf += val.htf;
+                colTotals.ke += val.ke; colTotals.ue += val.ue; colTotals.ae += val.ae; colTotals.he += val.he;
+                colTotals.tK += tK; colTotals.tU += tU; colTotals.tA += tA; colTotals.tH += tH;
+
+                rowsHtml += `
+                    <tr>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${index++}</td>
+                        <td style="border:0.5pt solid black; padding:5px; font-weight:bold;">${topicName}</td>
+                        <td style="border:0.5pt solid black; padding:5px; font-style:italic; font-size:10pt;">Đơn vị kiến thức chi tiết theo chương trình</td>
+                        
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.k4 || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.u4 || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.a4 || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.h4 || ''}</td>
+                        
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.ktf || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.utf || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.atf || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.htf || ''}</td>
+                        
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.ke || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.ue || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.ae || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px;">${val.he || ''}</td>
+                        
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px; font-weight:bold;">${tK || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px; font-weight:bold;">${tU || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px; font-weight:bold;">${tA || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px; font-weight:bold;">${tH || ''}</td>
+                        <td style="border:0.5pt solid black; text-align:center; padding:5px; font-weight:bold;">${rowPercent}%</td>
+                    </tr>
+                `;
+            }
+
+            // Tính tổng điểm thực tế theo từng cột tiêu chí năng lực dọc
+            let totalScoreMcq4 = (colTotals.k4 + colTotals.u4 + colTotals.a4 + colTotals.h4) * scoreWeightMcq4;
+            let totalScoreMcqtf = (colTotals.ktf + colTotals.utf + colTotals.atf + colTotals.htf) * scoreWeightMcqtf;
+            let totalScoreEssay = (colTotals.ke + colTotals.ue + colTotals.ae + colTotals.he) * scoreWeightEssay;
+
+            let finalScoreK = colTotals.k4 * scoreWeightMcq4 + colTotals.ktf * scoreWeightMcqtf + colTotals.ke * scoreWeightEssay;
+            let finalScoreU = colTotals.u4 * scoreWeightMcq4 + colTotals.utf * scoreWeightMcqtf + colTotals.ue * scoreWeightEssay;
+            let finalScoreA = colTotals.a4 * scoreWeightMcq4 + colTotals.atf * scoreWeightMcqtf + colTotals.ae * scoreWeightEssay;
+            let finalScoreH = colTotals.h4 * scoreWeightMcq4 + colTotals.htf * scoreWeightMcqtf + colTotals.he * scoreWeightEssay;
+
+            // Tính trực tiếp tỷ lệ %, không sử dụng phép trừ bắc cầu nhằm triệt tiêu số âm
+            let pctMcq4 = Math.round((totalScoreMcq4 / totalActualScore) * 100);
+            let pctMcqtf = Math.round((totalScoreMcqtf / totalActualScore) * 100);
+            let pctEssay = Math.round((totalScoreEssay / totalActualScore) * 100);
+
+            let pctK = Math.round((finalScoreK / totalActualScore) * 100);
+            let pctU = Math.round((finalScoreU / totalActualScore) * 100);
+            let pctA = Math.round((finalScoreA / totalActualScore) * 100);
+            let pctH = Math.round((finalScoreH / totalActualScore) * 100);
+
+            // Tự động chuẩn hóa tổng tỷ lệ kiểm soát sai số làm tròn để luôn đạt 100%
+            let totalPhanPercent = pctMcq4 + pctMcqtf + pctEssay;
+            if (totalPhanPercent !== 100 && totalPhanPercent > 0) {
+                pctEssay += (100 - totalPhanPercent);
+            }
+            let totalMucPercent = pctK + pctU + pctA + pctH;
+            if (totalMucPercent !== 100 && totalMucPercent > 0) {
+                pctH += (100 - totalMucPercent);
+            }
+
+            let matrixTemplate = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset="utf-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>100</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
                     <style>
-                        body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; }
-                        .title { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 20px; }
-                        .section-title { font-weight: bold; text-decoration: underline; margin-top: 15px; margin-bottom: 10px; }
-                        .question { margin-bottom: 15px; page-break-inside: avoid; }
-                        .code-block { font-family: 'Courier New', monospace; background-color: #f4f4f4; border: 1px solid #ddd; padding: 6px; margin: 5px 0; display: block; white-space: pre-wrap; }
-                        .score { font-style: italic; color: #555; }
-                        .options { margin-left: 15px; }
-                        .answer-zone { color: #198754; font-weight: bold; margin-top: 3px; font-size: 11pt; }
+                        /* Định nghĩa kích thước trang ngang cho Microsoft Word */
+                        @page {
+                            size: 29.7cm 21.0cm;
+                            margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+                        }
+                        @page Section1 {
+                            size: 29.7cm 21.0cm;
+                            margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+                            mso-page-orientation: landscape;
+                        }
+                        div.Section1 {
+                            page: Section1;
+                        }
+                        body { font-family: 'Times New Roman', serif; font-size: 10.5pt; line-height: 1.3; color: #000000; }
+                        table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+                        th { border: 0.5pt solid black; text-align: center; font-weight: bold; padding: 4px; }
+                        td { border: 0.5pt solid black; vertical-align: middle; }
                     </style>
                 </head>
                 <body>
-                    <div class="title">ĐỀ KIỂM TRA MÔN TIN HỌC${titleSuffix}<br><span style="font-size: 11pt; font-weight: normal;">(Hệ thống biên soạn tự động từ bảng ma trận nâng cao)</span></div>
+                    <!-- Bọc toàn bộ bảng vào thẻ div Section1 để ép Word nhận diện khổ ngang -->
+                    <div class="Section1">
+                        <div style="width:100%; text-align: center; margin-bottom: 20px;">
+                            <b style="font-size: 11pt; text-transform: uppercase;">SỞ GIÁO DỤC VÀ ĐÀO TẠO KHU VỰC</b><br>
+                            <b style="font-size: 12pt;">MA TRẬN ĐỀ KIỂM TRA ĐỊNH KÌ</b><br>
+                            <b style="font-size: 10.5pt;">TRƯỜNG THPT X</b>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="3" style="width: 3%;">TT</th>
+                                    <th rowspan="3" style="width: 15%;">Chủ đề / Chương</th>
+                                    <th rowspan="3" style="width: 20%;">Nội dung / Đơn vị kiến thức</th>
+                                    <th colspan="12" style="width: 48%;">Mức độ đánh giá</th>
+                                    <th colspan="4" style="width: 10%;">Tổng số câu hỏi</th>
+                                    <th rowspan="3" style="width: 4%;">Tỉ lệ % điểm</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="4">TNKQ (4 lựa chọn)</th>
+                                    <th colspan="4">Trắc nghiệm "Đúng - Sai"</th>
+                                    <th colspan="4">Tự luận</th>
+                                    <th rowspan="2">Biết</th>
+                                    <th rowspan="2">Hiểu</th>
+                                    <th rowspan="2">Vận dụng</th>
+                                    <th rowspan="2">VD Cao</th>
+                                </tr>
+                                <tr>
+                                    <th>Biết</th><th>Hiểu</th><th>VD</th><th>VDC</th>
+                                    <th>Biết</th><th>Hiểu</th><th>VD</th><th>VDC</th>
+                                    <th>Biết</th><th>Hiểu</th><th>VD</th><th>VDC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                                
+                                <!-- HÀNG 1: TỔNG SỐ CÂU HỎI THEO DẠNG CỘT DỌC -->
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3" style="text-align: right; padding:6px;">Tổng số câu:</td>
+                                    <td style="text-align: center;">${colTotals.k4 || ''}</td>
+                                    <td style="text-align: center;">${colTotals.u4 || ''}</td>
+                                    <td style="text-align: center;">${colTotals.a4 || ''}</td>
+                                    <td style="text-align: center;">${colTotals.h4 || ''}</td>
+                                    <td style="text-align: center;">${colTotals.ktf || ''}</td>
+                                    <td style="text-align: center;">${colTotals.utf || ''}</td>
+                                    <td style="text-align: center;">${colTotals.atf || ''}</td>
+                                    <td style="text-align: center;">${colTotals.htf || ''}</td>
+                                    <td style="text-align: center;">${colTotals.ke || ''}</td>
+                                    <td style="text-align: center;">${colTotals.ue || ''}</td>
+                                    <td style="text-align: center;">${colTotals.ae || ''}</td>
+                                    <td style="text-align: center;">${colTotals.he || ''}</td>
+                                    <td style="text-align: center;">${colTotals.tK || ''}</td>
+                                    <td style="text-align: center;">${colTotals.tU || ''}</td>
+                                    <td style="text-align: center;">${colTotals.tA || ''}</td>
+                                    <td style="text-align: center;">${colTotals.tH || ''}</td>
+                                    <td style="text-align: center;">${colTotals.tK + colTotals.tU + colTotals.tA + colTotals.tH}</td>
+                                </tr>
+
+                                <!-- HÀNG 2: TỔNG ĐIỂM CỦA MỘT LOẠT CÂU HỎI (GỘP THEO PHẦN ĐỀ THI) -->
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3" style="text-align: right; padding:6px;">Tổng số điểm:</td>
+                                    <td colspan="4" style="text-align: center;">${totalScoreMcq4.toFixed(2)}</td>
+                                    <td colspan="4" style="text-align: center;">${totalScoreMcqtf.toFixed(2)}</td>
+                                    <td colspan="4" style="text-align: center;">${totalScoreEssay.toFixed(2)}</td>
+                                    <td style="text-align: center;">${finalScoreK.toFixed(2)}</td>
+                                    <td style="text-align: center;">${finalScoreU.toFixed(2)}</td>
+                                    <td style="text-align: center;">${finalScoreA.toFixed(2)}</td>
+                                    <td style="text-align: center;">${finalScoreH.toFixed(2)}</td>
+                                    <td style="text-align: center;">10.0đ</td>
+                                </tr>
+
+                                <!-- HÀNG 3: TỈ LỆ % ĐIỂM THEO CẤU TRÚC GỘP PHẦN VÀ ĐỊNH BIÊN NĂNG LỰC -->
+                                <tr style="font-weight: bold;">
+                                    <td colspan="3" style="text-align: right; padding:6px;">Tỉ lệ % điểm:</td>
+                                    <td colspan="4" style="text-align: center;">${pctMcq4}%</td>
+                                    <td colspan="4" style="text-align: center;">${pctMcqtf}%</td>
+                                    <td colspan="4" style="text-align: center;">${pctEssay}%</td>
+                                    <td style="text-align: center;">${pctK}%</td>
+                                    <td style="text-align: center;">${pctU}%</td>
+                                    <td style="text-align: center;">${pctA}%</td>
+                                    <td style="text-align: center;">${pctH}%</td>
+                                    <td style="text-align: center;">100%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </body>
+                </html>
             `;
 
-            if (mcq4Items.length > 0) {
-                htmlContent += `<div class="section-title">PHẦN I. Câu trắc nghiệm khách quan (4 lựa chọn)</div>`;
-                mcq4Items.forEach((item, index) => {
-                    const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatCodeForWord(codeVal);
-
-                    htmlContent += `
-                        <div class="question">
-                            <b>Câu ${index + 1}:</b> ${item.querySelector('.form-q').value} <span class="score">(${item.querySelector('.form-score').value} điểm)</span>
-                            ${codeVal.trim() ? `<div class="code-block">${codeFormatted}</div>` : ''}
-                            <div class="options">
-                                A. ${item.querySelector('.form-a').value}<br>
-                                B. ${item.querySelector('.form-b').value}<br>
-                                C. ${item.querySelector('.form-c').value}<br>
-                                D. ${item.querySelector('.form-d').value}
-                            </div>
-                            ${includeAnswers ? `<div class="answer-zone">→ Đáp án đúng: ${item.querySelector('.form-ans').value}</div>` : ''}
-                        </div>`;
-                });
-            }
-
-            if (mcqTfItems.length > 0) {
-                htmlContent += `<div class="section-title">PHẦN II. Câu trắc nghiệm Đúng / Sai</div>`;
-                htmlContent += `<div style="font-style: italic; margin-bottom: 10px;">Thí sinh chọn Đúng hoặc Sai cho mỗi ý a), b), c), d) trong từng câu.</div>`;
-                
-                mcqTfItems.forEach((item, index) => {
-                    const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatCodeForWord(codeVal);
-                    htmlContent += `
-                        <div class="question">
-                            <b>Câu ${index + 1}:</b> ${item.querySelector('.form-q').value} <span class="score">(${item.querySelector('.form-score').value} điểm)</span>
-                            ${codeVal.trim() ? `<div class="code-block">${codeFormatted}</div>` : ''}
-                            <div class="options" style="margin-top: 5px;">
-                                a) ${item.querySelector('.form-stmt-a').value}<br>
-                                b) ${item.querySelector('.form-stmt-b').value}<br>
-                                c) ${item.querySelector('.form-stmt-c').value}<br>
-                                d) ${item.querySelector('.form-stmt-d').value}
-                            </div>
-                            ${includeAnswers ? `<div class="answer-zone">→ Đáp án: a) ${item.querySelector('.form-ans-a').value} | b) ${item.querySelector('.form-ans-b').value} | c) ${item.querySelector('.form-ans-c').value} | d) ${item.querySelector('.form-ans-d').value}</div>` : ''}
-                        </div>`;
-                });
-            }
-
-            if (essayItems.length > 0) {
-                htmlContent += `<div class="section-title">PHẦN III. Câu hỏi tự luận định nghĩa / Lập trình</div>`;
-                essayItems.forEach((item, index) => {
-                    const codeVal = item.querySelector('.form-code').value;
-                    const codeFormatted = formatCodeForWord(codeVal);
-                    const guideFormatted = formatLineBreaks(item.querySelector('.form-ans').value);
-
-                    htmlContent += `
-                        <div class="question">
-                            <b>Câu ${index + 1}:</b> ${item.querySelector('.form-q').value} <span class="score">(${item.querySelector('.form-score').value} điểm)</span>
-                            ${codeVal.trim() ? `<div class="code-block">${codeFormatted}</div>` : ''}
-                            ${includeAnswers ? `<div style="margin-top: 5px; background-color: #fafafa; padding: 5px; border-left: 3px solid #198754;"><b>Hướng dẫn chấm:</b><br>${guideFormatted}</div>` : ''}
-                        </div>`;
-                });
-            }
-
-            htmlContent += `</body></html>`;
-
-            const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            const blob = new Blob(['\ufeff' + matrixTemplate], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
             a.href = url;
-            a.download = includeAnswers ? 'De_Kiem_Tra_Co_Dap_An.doc' : 'De_Kiem_Tra_De_Bai.doc';
+            a.download = `Ma_Tran_De_Thi_Khong_Ngang_${dateStr}.doc`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
         }
 
-        exportSelection.addEventListener('change', () => {
-            const method = exportSelection.value;
-            if (method === 'NO_ANS') {
-                buildAndDownloadWord(false);
-            } else if (method === 'WITH_ANS') {
-                buildAndDownloadWord(true);
+        function extractExamToFlatArray(includeAnswers) {
+            const data = [];
+            containerMcq4.querySelectorAll('.question-item').forEach((el, idx) => {
+                data.push({
+                    "Phần": "PHẦN I (4 Lựa chọn)",
+                    "STT": idx + 1,
+                    "Nội dung câu hỏi/Ngữ cảnh": el.querySelector('.form-q').value,
+                    "Mã nguồn minh họa (Code)": el.querySelector('.form-code').value,
+                    "Điểm": el.querySelector('.form-score').value,
+                    "Chi tiết Ý a / Phương án A": el.querySelector('.form-a').value,
+                    "Chi tiết Ý b / Phương án B": el.querySelector('.form-b').value,
+                    "Chi tiết Ý c / Phương án C": el.querySelector('.form-c').value,
+                    "Chi tiết Ý d / Phương án D": el.querySelector('.form-d').value,
+                    "Đáp án chuẩn": includeAnswers ? el.querySelector('.form-ans').value : ""
+                });
+            });
+            containerMcqTf.querySelectorAll('.question-item').forEach((el, idx) => {
+                const ansStr = includeAnswers ? `a: ${el.querySelector('.form-ans-a').value} | b: ${el.querySelector('.form-ans-b').value} | c: ${el.querySelector('.form-ans-c').value} | d: ${el.querySelector('.form-ans-d').value}` : "";
+                data.push({
+                    "Phần": "PHẦN II (Đúng / Sai)",
+                    "STT": idx + 1,
+                    "Nội dung câu hỏi/Ngữ cảnh": el.querySelector('.form-q').value,
+                    "Mã nguồn minh họa (Code)": el.querySelector('.form-code').value,
+                    "Điểm": el.querySelector('.form-score').value,
+                    "Chi tiết Ý a / Phương án A": `[a] ${el.querySelector('.form-stmt-a').value}`,
+                    "Chi tiết Ý b / Phương án B": `[b] ${el.querySelector('.form-stmt-b').value}`,
+                    "Chi tiết Ý c / Phương án C": `[c] ${el.querySelector('.form-stmt-c').value}`,
+                    "Chi tiết Ý d / Phương án D": `[d] ${el.querySelector('.form-stmt-d').value}`,
+                    "Đáp án chuẩn": ansStr
+                });
+            });
+            containerEssay.querySelectorAll('.question-item').forEach((el, idx) => {
+                data.push({
+                    "Phần": "PHẦN III (Tự luận)",
+                    "STT": idx + 1,
+                    "Nội dung câu hỏi/Ngữ cảnh": el.querySelector('.form-q').value,
+                    "Mã nguồn minh họa (Code)": el.querySelector('.form-code').value,
+                    "Điểm": el.querySelector('.form-score').value,
+                    "Chi tiết Ý a / Phương án A": "",
+                    "Chi tiết Ý b / Phương án B": "",
+                    "Chi tiết Ý c / Phương án C": "",
+                    "Chi tiết Ý d / Phương án D": "",
+                    "Đáp án chuẩn": includeAnswers ? el.querySelector('.form-ans').value : ""
+                });
+            });
+            return data;
+        }
+
+        document.querySelectorAll('.btn-export-action').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const action = this.getAttribute('data-action');
+
+                if (action !== 'word-matrix' && !containerMcq4.innerHTML && !containerMcqTf.innerHTML && !containerEssay.innerHTML) {
+                    alert("Chưa có nội dung câu hỏi để xuất bản!");
+                    return;
+                }
+
+                switch (action) {
+                    case 'word-no':
+                        executeDownloadWordFlow(false);
+                        break;
+                    case 'word-yes':
+                        executeDownloadWordFlow(true);
+                        break;
+                    case 'word-matrix':
+                        executeDownloadMatrixWordFlow();
+                        break;
+                    case 'excel-no':
+                        executeSheetJSFlow(false, 'xlsx');
+                        break;
+                    case 'excel-yes':
+                        executeSheetJSFlow(true, 'xlsx');
+                        break;
+                    case 'lms-csv':
+                        executeSheetJSFlow(true, 'csv');
+                        break;
+                }
+            });
+        });
+
+        function executeDownloadWordFlow(includeAnswers) {
+            let coreHtml = generateCoreExamHTML(includeAnswers);
+            let docTemplate = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        @page { size: 21cm 29.7cm; margin: 1.5cm 1.5cm 1.5cm 1.5cm; }
+                        body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.25; color: #000000; }
+                    </style>
+                </head>
+                <body>
+                    ${coreHtml}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + docTemplate], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = includeAnswers ? 'De_Thi_Tin_Hoc_Co_Dap_An.doc' : 'De_Thi_Tin_Hoc_Hoc_Sinh.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+        }
+
+        function executeSheetJSFlow(includeAnswers, mode) {
+            const arrFlatData = extractExamToFlatArray(includeAnswers);
+            const worksheet = XLSX.utils.json_to_sheet(arrFlatData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Ngan_Hang_De_Thi");
+
+            if (mode === 'xlsx') {
+                XLSX.writeFile(workbook, includeAnswers ? "Ngan_Hang_De_Thi_Kem_Dap_An.xlsx" : "Ngan_Hang_De_Thi_Goc.xlsx");
+            } else if (mode === 'csv') {
+                XLSX.writeFile(workbook, "Cau_Truc_He_Thong_Import.csv", { bookType: 'csv', encoding: 'UTF-8' });
             }
-            exportSelection.value = "";
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+        }
+
+        // ==========================================
+        // SAO LƯU & NẠP HỆ THỐNG (.HTTH)
+        // ==========================================
+        const systemImportBtn = document.getElementById('btn-system-import');
+        const systemExportBtn = document.getElementById('btn-system-export');
+        const systemFileReader = document.getElementById('system-file-reader');
+
+        systemExportBtn.addEventListener('click', () => {
+            const rawStorage = localStorage.getItem('exam_builder_full_state');
+            const manualApiKey = localStorage.getItem('exam_builder_manual_key') || "";
+
+            if (!rawStorage) {
+                alert("Bộ nhớ rỗng, không có dữ liệu để xuất!");
+                return;
+            }
+
+            const fullPackageToSave = {
+                timestamp: new Date().toISOString(),
+                savedApiKey: manualApiKey,
+                systemCoreState: JSON.parse(rawStorage)
+            };
+
+            const jsonString = JSON.stringify(fullPackageToSave, null, 2);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cau_Hinh_Ma_Tran_${new Date().toLocaleDateString().replace(/\//g, '-')}.htth`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        systemImportBtn.addEventListener('click', () => systemFileReader.click());
+
+        systemFileReader.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                try {
+                    const parsedPackage = JSON.parse(event.target.result);
+                    if (!parsedPackage.systemCoreState) {
+                        throw new Error("File tải lên sai định dạng cấu trúc hệ thống!");
+                    }
+
+                    if (parsedPackage.savedApiKey) {
+                        localStorage.setItem('exam_builder_manual_key', parsedPackage.savedApiKey);
+                    }
+                    localStorage.setItem('exam_builder_full_state', JSON.stringify(parsedPackage.systemCoreState));
+
+                    alert("Đã phục hồi dữ liệu từ file .htth!");
+                    window.location.reload();
+                } catch (err) {
+                    console.error(err);
+                    alert("Lỗi đọc file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            systemFileReader.value = "";
+        });
+
+        // Khởi tạo các phần tử DOM mới
+        const btnPreviewExam = document.getElementById('btn-preview-exam');
+        const previewModalBody = document.getElementById('preview-modal-body');
+        const previewToggleAnswers = document.getElementById('preview-toggle-answers');
+        const btnPreviewDownload = document.getElementById('btn-preview-download');
+
+        // Khởi tạo thực thể Bootstrap Modal để gọi qua JS
+        const bsExportModal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+        const bsPreviewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+
+        // Bắt sự kiện bấm nút Xem trước
+        btnPreviewExam.addEventListener('click', () => {
+            // 1. Kiểm tra xem đã có câu hỏi nào được tạo chưa
+            if (!containerMcq4.innerHTML && !containerMcqTf.innerHTML && !containerEssay.innerHTML) {
+                alert("Chưa có nội dung câu hỏi để hiển thị bản xem trước!");
+                return;
+            }
+
+            // 2. Ẩn modal tùy chọn xuất file cũ đi
+            if (bsExportModal) bsExportModal.hide();
+
+            // 3. Render nội dung (mặc định chưa kèm đáp án)
+            renderPreview(previewToggleAnswers.checked);
+
+            // 4. Hiển thị modal xem trước lên
+            bsPreviewModal.show();
+        });
+
+        // Hàm Render nội dung đề thi vào khung Preview
+        function renderPreview(includeAnswers) {
+            // Tái sử dụng hàm sinh HTML chuẩn của bạn
+            let coreExamHtml = generateCoreExamHTML(includeAnswers);
+
+            // Đổ trực tiếp vào body modal preview kèm bọc style Times New Roman cho chuẩn mắt Word
+            previewModalBody.innerHTML = `
+        <div style="font-family: 'Times New Roman', Times, serif; color: black; line-height: 1.3;">
+            ${coreExamHtml}
+        </div>
+    `;
+        }
+
+        // Bật/tắt hiển thị đáp án trực tiếp khi đang xem preview
+        previewToggleAnswers.addEventListener('change', function () {
+            renderPreview(this.checked);
+        });
+
+        // Cho phép tải file .doc trực tiếp khi đang ở màn hình xem trước
+        btnPreviewDownload.addEventListener('click', () => {
+            executeDownloadWordFlow(previewToggleAnswers.checked);
+            bsPreviewModal.hide();
         });
     </script>
 </body>
