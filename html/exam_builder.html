@@ -39,10 +39,42 @@
             padding: 0.15rem 0.5rem;
         }
 
-        /* Thêm style cho textarea trong bảng để giao diện gọn gàng hơn */
         .inp-topic {
             resize: vertical;
             min-height: 40px;
+        }
+
+        .question-item {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        .handle-grab {
+            cursor: grab;
+            padding: 4px 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.15s ease;
+            
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .handle-grab:hover {
+            background-color: #e9ecef;
+            color: #212529 !important;
+        }
+        .handle-grab:active {
+            cursor: grabbing;
+        }
+        .question-item.dragging {
+            opacity: 0.4;
+            border: 2px dashed #0d6efd !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -56,7 +88,6 @@
                     class="d-inline-block align-text-top me-2">
                 <strong>HỌC TẬP TIN HỌC</strong>
             </a>
-            <!-- THÊM: NÚT DỌN SẠCH DỮ LIỆU BẢO MẬT -->
             <button class="btn btn-sm btn-danger fw-bold shadow-sm" id="nav-factory-reset-btn">
                 <i class="fas fa-radiation me-1"></i>Xóa tất cả dữ liệu hệ thống
             </button>
@@ -150,7 +181,6 @@
                                             <button class="btn btn-sm btn-success float-end" id="btn-add-mcq4"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
                                         </td>
                                     </tr>
-                                    <!-- Các dòng nội dung sẽ được render ở đây -->
                                 </tbody>
 
                                 <!-- Dạng 2: Trắc nghiệm Đúng / Sai -->
@@ -161,7 +191,6 @@
                                             <button class="btn btn-sm btn-success float-end" id="btn-add-mcqtf"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
                                         </td>
                                     </tr>
-                                    <!-- Các dòng nội dung sẽ được render ở đây -->
                                 </tbody>
 
                                 <!-- Dạng 3: Tự luận -->
@@ -172,7 +201,6 @@
                                             <button class="btn btn-sm btn-success float-end" id="btn-add-essay"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
                                         </td>
                                     </tr>
-                                    <!-- Các dòng nội dung sẽ được render ở đây -->
                                 </tbody>
 
                                 <tfoot class="table-dark text-white fw-bold">
@@ -247,19 +275,19 @@
                 <div class="mb-4" id="sec-mcq4">
                     <h5 class="text-success border-bottom pb-2 fw-bold"><i class="fas fa-circle-dot me-2"></i>Phần I:
                         Câu hỏi trắc nghiệm khách quan (4 lựa chọn)</h5>
-                    <div id="container-mcq-4" class="list-group list-group-flush"></div>
+                    <div id="container-mcq-4" class="list-group list-group-flush question-container" data-type="mcq4"></div>
                 </div>
 
                 <div class="mb-4" id="sec-mcqtf">
                     <h5 class="text-secondary border-bottom pb-2 fw-bold"><i class="fas fa-square-check me-2"></i>Phần
                         II: Câu hỏi trắc nghiệm Đúng / Sai</h5>
-                    <div id="container-mcq-tf" class="list-group list-group-flush"></div>
+                    <div id="container-mcq-tf" class="list-group list-group-flush question-container" data-type="mcqtf"></div>
                 </div>
 
                 <div class="mb-3" id="sec-essay">
                     <h5 class="text-dark border-bottom pb-2 fw-bold"><i class="fas fa-paragraph me-2"></i>Phần III: Câu
                         hỏi tự luận định nghĩa / Lập trình</h5>
-                    <div id="container-essay" class="list-group list-group-flush"></div>
+                    <div id="container-essay" class="list-group list-group-flush question-container" data-type="essay"></div>
                 </div>
 
             </div>
@@ -322,13 +350,12 @@
         const factoryResetBtn = document.getElementById('nav-factory-reset-btn');
 
         let fileCounter = 0;
+        let scrollInterval = null; // Quản lý luồng Auto-Scroll toàn cục
 
-        // 1. QUẢN LÝ LƯU TRỮ API KEY TRỰC TIẾP VÀO LOCAL STORAGE
         apiKeyInput.addEventListener('input', () => {
             localStorage.setItem('exam_builder_manual_key', apiKeyInput.value.trim());
         });
 
-        // 2. XỬ LÝ ĐỘNG THÊM DÒNG NỘI DUNG MA TRẬN
         function addTopicRow(type, topic = "", k = 0, u = 0, a = 0, h = 0) {
             const tbody = document.getElementById(`tbody-${type}`);
             const tr = document.createElement('tr');
@@ -349,7 +376,6 @@
             tr.querySelectorAll('.matrix-input').forEach(inp => inp.addEventListener('input', calculateMatrix));
             tr.querySelector('.inp-topic').addEventListener('input', saveMatrixState);
             
-            // THAY ĐỔI: Thêm xác nhận trước khi xóa dòng nội dung ma trận
             tr.querySelector('.btn-del-row').addEventListener('click', () => {
                 if (confirm("Bạn có chắc chắn muốn xóa dòng nội dung/chủ đề ma trận này không?")) {
                     tr.remove();
@@ -408,7 +434,6 @@
             saveMatrixState();
         }
 
-        // 3. CƠ CHẾ LƯU TRỮ VÀ ĐỒNG BỘ LOCAL STORAGE
         function saveMatrixState() {
             const state = {
                 additionalText: additionalText.value,
@@ -458,6 +483,8 @@
             if(document.querySelectorAll('#tbody-mcq4 .topic-row').length === 0) addTopicRow('mcq4');
             if(document.querySelectorAll('#tbody-mcqtf .topic-row').length === 0) addTopicRow('mcqtf');
             if(document.querySelectorAll('#tbody-essay .topic-row').length === 0) addTopicRow('essay');
+
+            initDragAndDrop();
         }
 
         additionalText.addEventListener('input', saveMatrixState);
@@ -465,7 +492,6 @@
         loadMatrixState();
         updateQuestionNumbers();
 
-        // 4. XỬ LÝ ĐỌC TÀI LIỆU NỀN TẢNG
         fileInput.addEventListener('change', async (event) => {
             const files = event.target.files;
             if (files.length === 0) return;
@@ -501,7 +527,6 @@
                 `;
                 pdfAccordion.appendChild(accordionItem);
 
-                // THAY ĐỔI: Thêm xác nhận trước khi xóa từng tài liệu nền cụ thể
                 accordionItem.querySelector('.context-delete-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (confirm(`Bạn có chắc chắn muốn xóa tài liệu "${file.name}" khỏi hệ thống tri thức không?`)) {
@@ -536,7 +561,6 @@
             globalStatus.classList.add('d-none');
         });
 
-        // THAY ĐỔI: Cảnh báo xác nhận trước khi dọn sạch tất cả file tài liệu nền
         clearAllBtn.addEventListener('click', () => {
             if (confirm("Bạn có chắc chắn muốn xóa SẠCH tất cả tài liệu nền hiện tại không?")) {
                 pdfAccordion.innerHTML = "";
@@ -544,7 +568,6 @@
             }
         });
 
-        // THAY ĐỔI: Cảnh báo xác nhận trước khi xóa trống nội dung prompt phụ
         clearInputBtn.addEventListener('click', () => {
             if (confirm("Bạn có chắc chắn muốn xóa trống nội dung ô yêu cầu bổ sung không?")) {
                 additionalText.value = "";
@@ -565,6 +588,100 @@
             saveMatrixState();
         };
 
+        // NÂNG CẤP TOÀN DIỆN: Tích hợp cơ chế Auto-Scroll màn hình khi kéo chuột sát mép trên/dưới
+        function initDragAndDrop() {
+            const containers = document.querySelectorAll('.question-container');
+            
+            containers.forEach(container => {
+                container.addEventListener('mousedown', (e) => {
+                    const handle = e.target.closest('.handle-grab');
+                    if (handle) {
+                        const item = handle.closest('.question-item');
+                        if (item) {
+                            item.setAttribute('draggable', 'true');
+                        }
+                    }
+                });
+
+                container.addEventListener('mouseup', (e) => {
+                    const item = container.querySelector('.question-item[draggable="true"]');
+                    if (item) item.removeAttribute('draggable');
+                    clearInterval(scrollInterval); // Đảm bảo dừng cuộn khi thả chuột ra
+                });
+
+                container.addEventListener('dragstart', (e) => {
+                    const item = e.target.closest('.question-item');
+                    if (item && item.getAttribute('draggable') === 'true') {
+                        item.classList.add('dragging');
+                        window.getSelection().removeAllRanges();
+                    } else {
+                        e.preventDefault();
+                    }
+                });
+
+                container.addEventListener('dragend', (e) => {
+                    const item = e.target.closest('.question-item');
+                    if (!item) return;
+                    item.classList.remove('dragging');
+                    item.removeAttribute('draggable');
+                    clearInterval(scrollInterval); // Dừng luồng cuộn tự động khi kết thúc drag
+                    updateQuestionNumbers();
+                    saveMatrixState();
+                });
+
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingItem = container.querySelector('.dragging');
+                    if (!draggingItem) return;
+
+                    // THÊM MỚI: Xử lý tính toán vùng biên để kích hoạt Auto-Scroll
+                    const threshold = 100; // Khoảng cách vùng kích hoạt cuộn (px tính từ mép màn hình)
+                    const speedMultiplier = 0.4; // Hệ số điều chỉnh tốc độ cuộn
+                    
+                    const viewportHeight = window.innerHeight;
+                    const mouseInClientY = e.clientY;
+
+                    // Xóa lặp chu kỳ cuộn cũ trước khi đăng ký mốc tính toán mới
+                    clearInterval(scrollInterval);
+
+                    if (mouseInClientY < threshold) {
+                        // Chuột tiến sát mép trên -> Tự động cuộn lên
+                        const speed = Math.round((threshold - mouseInClientY) * speedMultiplier);
+                        scrollInterval = setInterval(() => {
+                            window.scrollBy(0, -speed);
+                        }, 15);
+                    } else if (mouseInClientY > viewportHeight - threshold) {
+                        // Chuột tiến sát mép dưới -> Tự động cuộn xuống
+                        const speed = Math.round((mouseInClientY - (viewportHeight - threshold)) * speedMultiplier);
+                        scrollInterval = setInterval(() => {
+                            window.scrollBy(0, speed);
+                        }, 15);
+                    }
+
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    if (afterElement == null) {
+                        container.appendChild(draggingItem);
+                    } else {
+                        container.insertBefore(draggingItem, afterElement);
+                    }
+                });
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.question-item:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
         function buildPromptForType(dataList) {
             let text = "";
             dataList.forEach(item => {
@@ -576,7 +693,6 @@
             return text || "   - Không sinh câu hỏi nào cho phần này.\n";
         }
 
-        // HÀM TẢI LẠI ĐỘC LẬP TỪNG CÂU HỎI
         window.reloadQuestion = async function (button, type) {
             const extraPrompt = prompt("Nhập yêu cầu phụ để sửa câu hỏi này (hoặc để trống nếu chỉ muốn AI đổi ngẫu nhiên thành câu khác):");
             if (extraPrompt === null) return;
@@ -710,7 +826,6 @@
             navCounts.essay.innerText = ce;
         }
 
-        // 5. BIÊN SOẠN VỚI GEMINI API STUDIO
         aiGenerateBtn.addEventListener('click', async () => {
             const apiKey = apiKeyInput.value.trim();
             if (!apiKey) {
@@ -781,7 +896,10 @@
                         div.className = 'list-group-item question-item p-3 border rounded mb-2 bg-white';
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-success">Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm 4 lựa chọn)</span>
+                                <span class="fw-bold text-success">
+                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm 4 lựa chọn)
+                                </span>
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcq4')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
@@ -811,7 +929,10 @@
                         div.className = 'list-group-item question-item p-3 border rounded mb-2 bg-white';
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-secondary">Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai đa ý)</span>
+                                <span class="fw-bold text-secondary">
+                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai đa ý)
+                                </span>
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcqtf')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
@@ -854,7 +975,10 @@
                         div.className = 'list-group-item question-item p-3 border rounded mb-2 bg-white';
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-dark">Câu <span class="q-num">${i + 1}</span> (Tự luận lập trình)</span>
+                                <span class="fw-bold text-dark">
+                                    <span class="handle-grab text-secondary me-2" title="Bấm giữ vào đây để kéo thay đổi vị trí câu hỏi"><i class="fas fa-grip-vertical"></i></span>
+                                    Câu <span class="q-num">${i + 1}</span> (Tự luận lập trình)
+                                </span>
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'essay')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
@@ -876,6 +1000,7 @@
                 }
 
                 updateQuestionNumbers();
+                initDragAndDrop();
                 saveMatrixState();
                 alert("Đề kiểm tra bám sát đa chủ đề đã được thiết lập thành công!");
 
@@ -889,7 +1014,6 @@
             }
         });
 
-        // SỰ KIỆN NÚT RESET TOÀN CỤC TRÊN NAVBAR
         factoryResetBtn.addEventListener('click', () => {
             const token = prompt("CẢNH BÁO: Hành động này sẽ xóa sạch cấu hình ma trận, danh sách API Key lưu trữ và các câu hỏi hiện tại.\n\nHãy nhập chữ 'OK' vào ô bên dưới để xác nhận dọn dẹp:");
             if (token === "OK") {
@@ -906,19 +1030,17 @@
             return text.replace(/\n/g, "<br>");
         }
 
-        // Thêm hàm định dạng riêng cho các đoạn Code
         function formatCodeForWord(text) {
             if (!text) return "";
             return text
-                .replace(/&/g, "&amp;")      // Mã hóa ký tự &
-                .replace(/</g, "&lt;")       // Mã hóa dấu < (tránh lỗi khi viết thư viện C++, thẻ HTML...)
-                .replace(/>/g, "&gt;")       // Mã hóa dấu >
-                .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;") // Thay 1 Tab bằng 4 khoảng trắng cứng
-                .replace(/ /g, "&nbsp;")     // Thay khoảng trắng thường bằng khoảng trắng cứng để Word không thu gọn
-                .replace(/\n/g, "<br>");     // Xuống dòng
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
+                .replace(/ /g, "&nbsp;")
+                .replace(/\n/g, "<br>");
         }
 
-        // XUẤT WORD
         function buildAndDownloadWord(includeAnswers) {
             const mcq4Items = containerMcq4.querySelectorAll('.question-item');
             const mcqTfItems = containerMcqTf.querySelectorAll('.question-item');
