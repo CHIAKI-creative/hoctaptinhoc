@@ -157,7 +157,7 @@
                                 <tbody id="tbody-mcqtf">
                                     <tr class="table-info text-start">
                                         <td colspan="7" class="fw-bold align-middle">
-                                            <i class="fas fa-square-check me-1"></i> II. Trắc nghiệm Đúng / Sai
+                                            <i class="fas fa-square-check me-1"></i> II. Trắc nghiệm Đúng / Sai (Mỗi câu 4 ý)
                                             <button class="btn btn-sm btn-success float-end" id="btn-add-mcqtf"><i class="fas fa-plus me-1"></i> Thêm nội dung</button>
                                         </td>
                                     </tr>
@@ -335,7 +335,6 @@
             tr.className = 'topic-row bg-white';
             tr.dataset.type = type;
             
-            // THAY ĐỔI: Sử dụng thẻ <textarea> cho ô nhập nội dung thay vì <input>
             tr.innerHTML = `
                 <td><textarea class="form-control form-control-sm inp-topic" rows="2" placeholder="Tên nội dung/chủ đề...">${topic}</textarea></td>
                 <td><input type="number" class="form-control form-control-sm matrix-input inp-k" value="${k}" min="0"></td>
@@ -349,9 +348,13 @@
 
             tr.querySelectorAll('.matrix-input').forEach(inp => inp.addEventListener('input', calculateMatrix));
             tr.querySelector('.inp-topic').addEventListener('input', saveMatrixState);
+            
+            // THAY ĐỔI: Thêm xác nhận trước khi xóa dòng nội dung ma trận
             tr.querySelector('.btn-del-row').addEventListener('click', () => {
-                tr.remove();
-                calculateMatrix();
+                if (confirm("Bạn có chắc chắn muốn xóa dòng nội dung/chủ đề ma trận này không?")) {
+                    tr.remove();
+                    calculateMatrix();
+                }
             });
 
             calculateMatrix();
@@ -361,7 +364,6 @@
         document.getElementById('btn-add-mcqtf').addEventListener('click', () => addTopicRow('mcqtf'));
         document.getElementById('btn-add-essay').addEventListener('click', () => addTopicRow('essay'));
 
-        // Hàm trích xuất dữ liệu ma trận từ DOM
         function getMatrixData(type) {
             const rows = document.querySelectorAll(`#tbody-${type} .topic-row`);
             const data = [];
@@ -453,7 +455,6 @@
                 }
             }
             
-            // Đảm bảo có ít nhất 1 dòng mặc định nếu bảng trống
             if(document.querySelectorAll('#tbody-mcq4 .topic-row').length === 0) addTopicRow('mcq4');
             if(document.querySelectorAll('#tbody-mcqtf .topic-row').length === 0) addTopicRow('mcqtf');
             if(document.querySelectorAll('#tbody-essay .topic-row').length === 0) addTopicRow('essay');
@@ -461,7 +462,6 @@
 
         additionalText.addEventListener('input', saveMatrixState);
 
-        // NẠP VÀ PHỤC HỒI DỮ LIỆU KHI KHỞI CHẠY TRANG WEB
         loadMatrixState();
         updateQuestionNumbers();
 
@@ -501,10 +501,13 @@
                 `;
                 pdfAccordion.appendChild(accordionItem);
 
+                // THAY ĐỔI: Thêm xác nhận trước khi xóa từng tài liệu nền cụ thể
                 accordionItem.querySelector('.context-delete-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    document.getElementById(`item-${fileId}`).remove();
-                    if (pdfAccordion.querySelectorAll('.accordion-item').length === 0 && emptyMessage) emptyMessage.classList.remove('d-none');
+                    if (confirm(`Bạn có chắc chắn muốn xóa tài liệu "${file.name}" khỏi hệ thống tri thức không?`)) {
+                        document.getElementById(`item-${fileId}`).remove();
+                        if (pdfAccordion.querySelectorAll('.accordion-item').length === 0 && emptyMessage) emptyMessage.classList.remove('d-none');
+                    }
                 });
 
                 if (fileExtension === 'docx') {
@@ -533,14 +536,20 @@
             globalStatus.classList.add('d-none');
         });
 
+        // THAY ĐỔI: Cảnh báo xác nhận trước khi dọn sạch tất cả file tài liệu nền
         clearAllBtn.addEventListener('click', () => {
-            pdfAccordion.innerHTML = "";
-            if (emptyMessage) emptyMessage.classList.remove('d-none');
+            if (confirm("Bạn có chắc chắn muốn xóa SẠCH tất cả tài liệu nền hiện tại không?")) {
+                pdfAccordion.innerHTML = "";
+                if (emptyMessage) emptyMessage.classList.remove('d-none');
+            }
         });
 
+        // THAY ĐỔI: Cảnh báo xác nhận trước khi xóa trống nội dung prompt phụ
         clearInputBtn.addEventListener('click', () => {
-            additionalText.value = "";
-            saveMatrixState();
+            if (confirm("Bạn có chắc chắn muốn xóa trống nội dung ô yêu cầu bổ sung không?")) {
+                additionalText.value = "";
+                saveMatrixState();
+            }
         });
 
         window.moveQuestion = function (button, direction) {
@@ -556,7 +565,6 @@
             saveMatrixState();
         };
 
-        // Hàm hỗ trợ build câu prompt cho từng nhóm dựa trên ma trận
         function buildPromptForType(dataList) {
             let text = "";
             dataList.forEach(item => {
@@ -607,9 +615,10 @@
                     question: item.querySelector('.form-q').value,
                     code: item.querySelector('.form-code').value,
                     score: item.querySelector('.form-score').value,
-                    opt1: item.querySelector('.form-a').value,
-                    opt2: item.querySelector('.form-b').value,
-                    ans: item.querySelector('.form-ans').value
+                    a: { stmt: item.querySelector('.form-stmt-a').value, ans: item.querySelector('.form-ans-a').value },
+                    b: { stmt: item.querySelector('.form-stmt-b').value, ans: item.querySelector('.form-ans-b').value },
+                    c: { stmt: item.querySelector('.form-stmt-c').value, ans: item.querySelector('.form-ans-c').value },
+                    d: { stmt: item.querySelector('.form-stmt-d').value, ans: item.querySelector('.form-ans-d').value }
                 };
             } else if (type === 'essay') {
                 currentContentObj = {
@@ -636,7 +645,7 @@
                 if (type === 'mcq4') {
                     promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu hỏi", "code": "Code/rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"}';
                 } else if (type === 'mcqtf') {
-                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Phát biểu", "code": "Code/rỗng", "score": 0.5, "opt1": "Đúng", "opt2": "Sai", "ans": "Đúng"}';
+                    promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Câu dẫn", "code": "Code/rỗng", "score": 1.0, "a": {"stmt": "Phát biểu a", "ans": "Đúng/Sai"}, "b": {"stmt": "Phát biểu b", "ans": "Đúng/Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng/Sai"}, "d": {"stmt": "Phát biểu d", "ans": "Đúng/Sai"}}';
                 } else if (type === 'essay') {
                     promptSystem = 'Bạn là chuyên gia thiết kế đề thi môn Tin học. Trả về 1 câu hỏi định dạng JSON thuần túy (không bọc thẻ markdown): {"question": "Yêu cầu tự luận", "code": "Code/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"}';
                 }
@@ -664,10 +673,15 @@
                 } else if (type === 'mcqtf') {
                     item.querySelector('.form-q').value = newData.question || "";
                     item.querySelector('.form-code').value = newData.code || "";
-                    item.querySelector('.form-score').value = newData.score || 0.5;
-                    item.querySelector('.form-a').value = newData.opt1 || "Đúng";
-                    item.querySelector('.form-b').value = newData.opt2 || "Sai";
-                    item.querySelector('.form-ans').value = newData.ans || "";
+                    item.querySelector('.form-score').value = newData.score || 1.0;
+                    item.querySelector('.form-stmt-a').value = newData.a?.stmt || "";
+                    item.querySelector('.form-ans-a').value = newData.a?.ans || "Đúng";
+                    item.querySelector('.form-stmt-b').value = newData.b?.stmt || "";
+                    item.querySelector('.form-ans-b').value = newData.b?.ans || "Sai";
+                    item.querySelector('.form-stmt-c').value = newData.c?.stmt || "";
+                    item.querySelector('.form-ans-c').value = newData.c?.ans || "Đúng";
+                    item.querySelector('.form-stmt-d').value = newData.d?.stmt || "";
+                    item.querySelector('.form-ans-d').value = newData.d?.ans || "Sai";
                 } else if (type === 'essay') {
                     item.querySelector('.form-q').value = newData.question || "";
                     item.querySelector('.form-code').value = newData.code || "";
@@ -721,7 +735,7 @@
                 Cấu trúc JSON bắt buộc phải trả về như sau:
                 {
                     "mcq4": [ {"question": "Câu hỏi", "code": "Đoạn code/rỗng", "score": 0.25, "a": "A", "b": "B", "c": "C", "d": "D", "ans": "A"} ],
-                    "mcqTf": [ {"question": "Phát biểu", "code": "Đoạn code/rỗng", "score": 0.5, "opt1": "Đúng", "opt2": "Sai", "ans": "Đúng"} ],
+                    "mcqTf": [ {"question": "Câu dẫn / Ngữ cảnh", "code": "Đoạn code/rỗng", "score": 1.0, "a": {"stmt": "Phát biểu a", "ans": "Đúng"}, "b": {"stmt": "Phát biểu b", "ans": "Sai"}, "c": {"stmt": "Phát biểu c", "ans": "Đúng"}, "d": {"stmt": "Phát biểu d", "ans": "Sai"}} ],
                     "essay": [ {"question": "Yêu cầu tự luận", "code": "Mã mẫu/rỗng", "score": 2.0, "guide": "Hướng dẫn chấm"} ]
                 }`;
 
@@ -736,11 +750,11 @@
                 Yêu cầu bổ sung chung: ${additionalText.value || "Thiết lập đề bài bám sát thực tiễn lập trình."}
                 Code minh họa phải thêm ở phần "code" trong json. Không thêm trong "question".
 
-                Hãy sinh CHÍNH XÁC số lượng câu hỏi theo cấu trúc phân phối ma trận chi tiết này (Cực kỳ quan trọng: Phải sinh đúng số lượng câu phân bổ theo đúng nội dung/chủ đề được liệt kê):
+                Hãy sinh CHÍNH XÁC số lượng câu hỏi theo cấu trúc phân phối ma trận chi tiết này (Cực kỳ quan trọng: Phải sinh đúng số lượng câu phân bổ theo đúng nội dung/chủ đề được liệt kê). Đối với trắc nghiệm Đúng/Sai, mỗi câu phải gồm 1 câu dẫn và 4 ý phát biểu (a, b, c, d) đi kèm với đáp án Đúng/Sai tương ứng:
 
                 1. Trắc nghiệm 4 lựa chọn: 
                 ${buildPromptForType(mcq4Data)}
-                2. Trắc nghiệm Đúng / Sai:
+                2. Trắc nghiệm Đúng / Sai (Mỗi câu gồm 4 ý phân loại Đúng/Sai):
                 ${buildPromptForType(mcqtfData)}
                 3. Tự luận lập trình:
                 ${buildPromptForType(essayData)}
@@ -797,23 +811,38 @@
                         div.className = 'list-group-item question-item p-3 border rounded mb-2 bg-white';
                         div.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-secondary">Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai)</span>
+                                <span class="fw-bold text-secondary">Câu <span class="q-num">${i + 1}</span> (Trắc nghiệm Đúng/Sai đa ý)</span>
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary" onclick="reloadQuestion(this, 'mcqtf')" title="Tạo lại riêng câu này"><i class="fas fa-sync-alt"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'up')"><i class="fas fa-arrow-up"></i></button>
                                     <button class="btn btn-outline-secondary" onclick="moveQuestion(this, 'down')"><i class="fas fa-arrow-down"></i></button>
                                 </div>
                             </div>
-                            <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2">${q.question}</textarea></div>
-                            <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="1">${q.code || ""}</textarea></div>
+                            <div class="mb-2"><textarea class="form-control form-q border-0 fw-semibold" rows="2" placeholder="Câu dẫn/Ngữ cảnh...">${q.question}</textarea></div>
+                            <div class="mb-2"><textarea class="form-control form-code font-monospace bg-dark text-light p-2 small" rows="1" placeholder="Code (nếu có)">${q.code || ""}</textarea></div>
                             <div class="row g-2 mb-2">
-                                <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 0.5}" step="0.25"></div>
+                                <div class="col-3">Điểm số: <input type="number" class="form-control form-control-sm form-score" value="${q.score || 1.0}" step="0.25"></div>
                             </div>
-                            <div class="row g-2 small">
-                                <div class="col-6">Lựa chọn 1: <textarea class="form-control form-control-sm form-a border-secondary-subtle" rows="1">${q.opt1 || 'Đúng'}</textarea></div>
-                                <div class="col-6">Lựa chọn 2: <textarea class="form-control form-control-sm form-b border-secondary-subtle" rows="1">${q.opt2 || 'Sai'}</textarea></div>
+                            <div class="row g-2 small mb-1 align-items-center">
+                                <div class="col-1 fw-bold text-end">a)</div>
+                                <div class="col-8"><textarea class="form-control form-control-sm form-stmt-a border-secondary-subtle" rows="1">${q.a?.stmt || ''}</textarea></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-a border-danger text-danger fw-bold"><option value="Đúng" ${q.a?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.a?.ans==='Sai'?'selected':''}>Sai</option></select></div>
                             </div>
-                            <div class="mt-2 text-danger small fw-bold">Đáp án đúng: <textarea class="form-control form-control-sm form-ans border-danger mt-1" rows="1">${q.ans}</textarea></div>
+                            <div class="row g-2 small mb-1 align-items-center">
+                                <div class="col-1 fw-bold text-end">b)</div>
+                                <div class="col-8"><textarea class="form-control form-control-sm form-stmt-b border-secondary-subtle" rows="1">${q.b?.stmt || ''}</textarea></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-b border-danger text-danger fw-bold"><option value="Đúng" ${q.b?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.b?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                            </div>
+                            <div class="row g-2 small mb-1 align-items-center">
+                                <div class="col-1 fw-bold text-end">c)</div>
+                                <div class="col-8"><textarea class="form-control form-control-sm form-stmt-c border-secondary-subtle" rows="1">${q.c?.stmt || ''}</textarea></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-c border-danger text-danger fw-bold"><option value="Đúng" ${q.c?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.c?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                            </div>
+                            <div class="row g-2 small mb-1 align-items-center">
+                                <div class="col-1 fw-bold text-end">d)</div>
+                                <div class="col-8"><textarea class="form-control form-control-sm form-stmt-d border-secondary-subtle" rows="1">${q.d?.stmt || ''}</textarea></div>
+                                <div class="col-3"><select class="form-select form-select-sm form-ans-d border-danger text-danger fw-bold"><option value="Đúng" ${q.d?.ans==='Đúng'?'selected':''}>Đúng</option><option value="Sai" ${q.d?.ans==='Sai'?'selected':''}>Sai</option></select></div>
+                            </div>
                         `;
                         containerMcqTf.appendChild(div);
                     });
@@ -944,6 +973,8 @@
 
             if (mcqTfItems.length > 0) {
                 htmlContent += `<div class="section-title">PHẦN II. Câu trắc nghiệm Đúng / Sai</div>`;
+                htmlContent += `<div style="font-style: italic; margin-bottom: 10px;">Thí sinh chọn Đúng hoặc Sai cho mỗi ý a), b), c), d) trong từng câu.</div>`;
+                
                 mcqTfItems.forEach((item, index) => {
                     const codeVal = item.querySelector('.form-code').value;
                     const codeFormatted = formatCodeForWord(codeVal);
@@ -951,11 +982,13 @@
                         <div class="question">
                             <b>Câu ${index + 1}:</b> ${item.querySelector('.form-q').value} <span class="score">(${item.querySelector('.form-score').value} điểm)</span>
                             ${codeVal.trim() ? `<div class="code-block">${codeFormatted}</div>` : ''}
-                            <div class="options">
-                                - Lựa chọn 1: ${item.querySelector('.form-a').value}<br>
-                                - Lựa chọn 2: ${item.querySelector('.form-b').value}
+                            <div class="options" style="margin-top: 5px;">
+                                a) ${item.querySelector('.form-stmt-a').value}<br>
+                                b) ${item.querySelector('.form-stmt-b').value}<br>
+                                c) ${item.querySelector('.form-stmt-c').value}<br>
+                                d) ${item.querySelector('.form-stmt-d').value}
                             </div>
-                            ${includeAnswers ? `<div class="answer-zone">→ Đáp án đúng: ${item.querySelector('.form-ans').value}</div>` : ''}
+                            ${includeAnswers ? `<div class="answer-zone">→ Đáp án: a) ${item.querySelector('.form-ans-a').value} | b) ${item.querySelector('.form-ans-b').value} | c) ${item.querySelector('.form-ans-c').value} | d) ${item.querySelector('.form-ans-d').value}</div>` : ''}
                         </div>`;
                 });
             }
